@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI小说生成系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .container {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            filter: brightness(1.1);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .quick-start {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .quick-start h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .quick-start-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-start-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quick-start-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        .quick-start-item .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .quick-start-item h4 {
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-start-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .status-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .status-panel h4 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .status-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #feca57;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: white;
+            margin: 2rem 0;
+        }
+
+        .loading .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .features-grid,
+            .quick-start-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📚 AI小说生成系统</h1>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>开启您的AI创作之旅</h2>
+            <p>智能小说生成，让创作变得简单而有趣</p>
+        </div>
+
+        <!-- 快速开始面板 -->
+        <div class="quick-start">
+            <h3>🚀 快速开始</h3>
+            <div class="quick-start-grid">
+                <div class="quick-start-item" onclick="showCreateNovelModal()">
+                    <span class="icon">✨</span>
+                    <h4>创建新小说</h4>
+                    <p>选择类型，开始创作</p>
+                </div>
+                <div class="quick-start-item" onclick="continueNovel()">
+                    <span class="icon">📖</span>
+                    <h4>继续创作</h4>
+                    <p>继续现有的小说</p>
+                </div>
+                <div class="quick-start-item" onclick="showQAModal()">
+                    <span class="icon">🤔</span>
+                    <h4>智能问答</h4>
+                    <p>询问小说内容</p>
+                </div>
+                <div class="quick-start-item" onclick="window.location.href='/novel'">
+                    <span class="icon">📖</span>
+                    <h4>小说管理</h4>
+                    <p>查看和管理小说</p>
+                </div>
+                <div class="quick-start-item" onclick="showStatsModal()">
+                    <span class="icon">📊</span>
+                    <h4>创作统计</h4>
+                    <p>查看进度和数据</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态面板 -->
+        <div class="status-panel">
+            <h4>📊 创作状态</h4>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-number" id="chapter-count">-</div>
+                    <div class="status-label">章节数量</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-number" id="word-count">-</div>
+                    <div class="status-label">总字数</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-number" id="quality-score">-</div>
+                    <div class="status-label">平均质量</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-number" id="novel-title">-</div>
+                    <div class="status-label">当前小说</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能特性 -->
+        <div class="features-grid">
+            <div class="feature-card" onclick="showAgentsModal()">
+                <span class="feature-icon">🤖</span>
+                <h3>智能体协作</h3>
+                <p>多个AI智能体协同工作，提供专业的小说创作服务，涵盖大纲规划、章节生成、角色塑造等各个环节。</p>
+                <div class="btn secondary">了解更多</div>
+            </div>
+
+            <div class="feature-card" onclick="generateChapter()">
+                <span class="feature-icon">✍️</span>
+                <h3>智能生成</h3>
+                <p>基于先进的AI技术，自动生成高质量的小说章节，支持多种文体和风格，让创作变得轻松愉快。</p>
+                <div class="btn secondary">开始生成</div>
+            </div>
+
+            <div class="feature-card" onclick="showOptimizeModal()">
+                <span class="feature-icon">⚡</span>
+                <h3>内容优化</h3>
+                <p>智能分析和优化小说内容，提升文本质量、逻辑连贯性和读者体验，让您的作品更加精彩。</p>
+                <div class="btn secondary">优化内容</div>
+            </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在处理中，请稍候...</p>
+        </div>
+    </div>
+
+    <!-- 创建小说模态框 -->
+    <div id="createNovelModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('createNovelModal')">&times;</span>
+            <h2>🆕 创建新小说</h2>
+            <form id="createNovelForm">
+                <div class="form-group">
+                    <label for="novelGenre">小说类型</label>
+                    <select id="novelGenre" required>
+                        <option value="">请选择类型</option>
+                        <option value="mystery">悬疑推理</option>
+                        <option value="romance">现代言情</option>
+                        <option value="fantasy">玄幻奇幻</option>
+                        <option value="scifi">科幻未来</option>
+                        <option value="historical">历史古风</option>
+                        <option value="urban">都市现代</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="novelTitle">书名（可选）</label>
+                    <input type="text" id="novelTitle" placeholder="留空将自动生成">
+                </div>
+                <div class="form-group">
+                    <label for="novelTheme">主题</label>
+                    <input type="text" id="novelTheme" placeholder="如：复仇、成长、爱情" required>
+                </div>
+                <div class="form-group">
+                    <label for="novelSetting">背景设定</label>
+                    <input type="text" id="novelSetting" placeholder="如：现代都市、古代宫廷" required>
+                </div>
+                <div class="form-group">
+                    <label for="novelStyle">文风</label>
+                    <select id="novelStyle" required>
+                        <option value="">请选择文风</option>
+                        <option value="轻松幽默">轻松幽默</option>
+                        <option value="严肃深刻">严肃深刻</option>
+                        <option value="浪漫温馨">浪漫温馨</option>
+                        <option value="紧张刺激">紧张刺激</option>
+                        <option value="古典雅致">古典雅致</option>
+                        <option value="现代简洁">现代简洁</option>
+                    </select>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button type="button" class="btn secondary" onclick="closeModal('createNovelModal')">取消</button>
+                    <button type="submit" class="btn">开始创作</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 智能问答模态框 -->
+    <div id="qaModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('qaModal')">&times;</span>
+            <h2>🤔 智能问答</h2>
+            <div class="form-group">
+                <label for="questionInput">您的问题</label>
+                <textarea id="questionInput" rows="4" placeholder="请输入您关于小说的问题..."></textarea>
+            </div>
+            <div style="text-align: center; margin: 1rem 0;">
+                <button class="btn" onclick="askQuestion()">提问</button>
+            </div>
+            <div id="answerDisplay" style="display: none;">
+                <h4>💡 回答</h4>
+                <div id="answerText" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; line-height: 1.6;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计模态框 -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('statsModal')">&times;</span>
+            <h2>📊 创作统计</h2>
+            <div id="detailedStats">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时获取状态
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatus();
+        });
+
+        async function loadStatus() {
+            try {
+                const [outlineRes, chaptersRes] = await Promise.all([
+                    fetch('/api/outline'),
+                    fetch('/api/chapters')
+                ]);
+
+                const outlineData = await outlineRes.json();
+                const chaptersData = await chaptersRes.json();
+
+                // 更新状态显示
+                if (chaptersData.success) {
+                    const chapters = chaptersData.data;
+                    const totalWords = chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+                    const qualityScores = chapters.filter(ch => ch.quality_score).map(ch => ch.quality_score);
+                    const avgQuality = qualityScores.length > 0 ? 
+                        (qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length).toFixed(1) : 0;
+
+                    document.getElementById('chapter-count').textContent = chapters.length;
+                    document.getElementById('word-count').textContent = totalWords.toLocaleString();
+                    document.getElementById('quality-score').textContent = avgQuality || '-';
+                }
+
+                if (outlineData.success) {
+                    const outline = outlineData.data;
+                    const title = outline.novel_title || '未命名';
+                    document.getElementById('novel-title').textContent = title.length > 8 ? title.substring(0, 8) + '...' : title;
+                } else {
+                    document.getElementById('novel-title').textContent = '暂无';
+                }
+
+            } catch (error) {
+                console.error('加载状态失败:', error);
+            }
+        }
+
+        function showCreateNovelModal() {
+            document.getElementById('createNovelModal').style.display = 'block';
+        }
+
+        function showQAModal() {
+            document.getElementById('qaModal').style.display = 'block';
+        }
+
+        function showStatsModal() {
+            document.getElementById('statsModal').style.display = 'block';
+            loadDetailedStats();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // 创建新小说
+        document.getElementById('createNovelForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                genre: document.getElementById('novelGenre').value,
+                title: document.getElementById('novelTitle').value,
+                theme: document.getElementById('novelTheme').value,
+                setting: document.getElementById('novelSetting').value,
+                style: document.getElementById('novelStyle').value
+            };
+
+            showLoading();
+            closeModal('createNovelModal');
+
+            try {
+                // 使用智能体协作创建
+                const response = await fetch('/api/agents/collaborative', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        genre: formData.genre,
+                        platform: 'tomato_novel',
+                        custom_settings: formData
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                if (result.success) {
+                    alert('🎉 新小说创作成功！大纲和首章已生成。');
+                    loadStatus(); // 刷新状态
+                } else {
+                    alert('❌ 创作失败: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                alert('❌ 创作过程出现错误: ' + error.message);
+            }
+        });
+
+        async function continueNovel() {
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/chapters/generate', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    alert('✅ 新章节生成成功！');
+                    loadStatus();
+                } else {
+                    alert('❌ 生成失败: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                alert('❌ 生成过程出现错误: ' + error.message);
+            }
+        }
+
+        async function generateChapter() {
+            const confirmed = confirm('🤖 是否生成新章节？');
+            if (!confirmed) return;
+            
+            continueNovel();
+        }
+
+        async function askQuestion() {
+            const question = document.getElementById('questionInput').value.trim();
+            if (!question) {
+                alert('请输入问题');
+                return;
+            }
+
+            const answerDisplay = document.getElementById('answerDisplay');
+            const answerText = document.getElementById('answerText');
+            
+            answerText.textContent = '思考中...';
+            answerDisplay.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/qa/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    answerText.textContent = result.answer;
+                } else {
+                    answerText.textContent = '抱歉，暂时无法回答这个问题: ' + result.message;
+                }
+            } catch (error) {
+                answerText.textContent = '查询过程出现错误: ' + error.message;
+            }
+        }
+
+        async function loadDetailedStats() {
+            const statsDiv = document.getElementById('detailedStats');
+            
+            try {
+                const [outlineRes, chaptersRes] = await Promise.all([
+                    fetch('/api/outline'),
+                    fetch('/api/chapters')
+                ]);
+
+                const outlineData = await outlineRes.json();
+                const chaptersData = await chaptersRes.json();
+
+                let html = '<div class="status-grid">';
+                
+                if (outlineData.success) {
+                    const outline = outlineData.data;
+                    html += `
+                        <div class="status-item">
+                            <div style="color: #667eea; font-weight: bold;">📚 小说信息</div>
+                            <div>标题：${outline.novel_title || '未设定'}</div>
+                            <div>类型：${outline.genre || '未知'}</div>
+                            <div>主题：${outline.theme || '未设定'}</div>
+                        </div>
+                    `;
+                }
+
+                if (chaptersData.success) {
+                    const chapters = chaptersData.data;
+                    const totalWords = chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+                    const qualityScores = chapters.filter(ch => ch.quality_score).map(ch => ch.quality_score);
+                    const avgQuality = qualityScores.length > 0 ? 
+                        (qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length).toFixed(1) : 0;
+
+                    html += `
+                        <div class="status-item">
+                            <div style="color: #feca57; font-weight: bold;">📊 创作进度</div>
+                            <div>章节数：${chapters.length}章</div>
+                            <div>总字数：${totalWords.toLocaleString()}字</div>
+                            <div>平均质量：${avgQuality}/10</div>
+                        </div>
+                    `;
+
+                    if (chapters.length > 0) {
+                        const avgWords = Math.round(totalWords / chapters.length);
+                        html += `
+                            <div class="status-item">
+                                <div style="color: #51cf66; font-weight: bold;">📈 统计信息</div>
+                                <div>平均字数：${avgWords}字/章</div>
+                                <div>最新章节：第${chapters.length}章</div>
+                                <div>创作状态：进行中</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += '</div>';
+                statsDiv.innerHTML = html;
+
+            } catch (error) {
+                statsDiv.innerHTML = '<div style="color: red;">统计信息加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showAgentsModal() {
+            alert('🤖 智能体功能正在开发中，敬请期待！\n\n当前支持的智能体：\n• 大纲规划智能体\n• 章节生成智能体\n• 角色记忆智能体\n• 情节追踪智能体\n• 内容优化智能体');
+        }
+
+        function showOptimizeModal() {
+            const confirmed = confirm('⚡ 是否对现有章节进行智能优化？\n\n这将分析并改进文本质量、逻辑连贯性等。');
+            if (confirmed) {
+                alert('🔧 优化功能正在开发中，敬请期待！');
+            }
+        }
+    </script>
+</body>
+</html>
