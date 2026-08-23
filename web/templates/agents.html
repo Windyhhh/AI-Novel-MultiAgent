@@ -1,0 +1,738 @@
+{% extends "base.html" %}
+
+{% block title %}智能体选择 - AI小说生成系统{% endblock %}
+
+{% block extra_css %}
+<style>
+.agents-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.agent-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.agent-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.agent-card.selected {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.agent-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.agent-icon {
+    font-size: 2.5rem;
+    margin-right: 15px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.agent-title {
+    flex: 1;
+}
+
+.agent-title h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.agent-title .genre-keywords {
+    font-size: 0.9rem;
+    color: #666;
+    opacity: 0.8;
+}
+
+.agent-description {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.agent-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.feature-tag {
+    background: rgba(0,0,0,0.05);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.agent-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-agent {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-agent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.selection-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.custom-settings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.setting-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.setting-group input, .setting-group select, .setting-group textarea {
+    padding: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+}
+
+.setting-group input:focus, .setting-group select:focus, .setting-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.recommendation-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.recommendation-panel h3 {
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recommendation-item {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.confidence-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: #4caf50;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.workflow-status {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.workflow-step.active {
+    background: #e3f2fd;
+    border-left: 4px solid var(--primary-color);
+}
+
+.workflow-step.completed {
+    background: #e8f5e8;
+    border-left: 4px solid #4caf50;
+}
+
+.step-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-action {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.floating-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 智能推荐面板 -->
+<div class="recommendation-panel" style="display: none;" id="recommendationPanel">
+    <h3>🤖 智能推荐</h3>
+    <div id="recommendationContent">
+        <p>根据您的需求，我们为您推荐以下智能体：</p>
+        <div id="recommendationList"></div>
+    </div>
+</div>
+
+<!-- 当前选择面板 -->
+<div class="selection-panel">
+    <h3>📝 创作设置</h3>
+    <div id="selectedAgent">
+        <p style="color: #666; text-align: center; padding: 20px;">
+            请选择一个智能体类型开始创作
+        </p>
+    </div>
+    
+    <div id="customSettingsPanel" style="display: none;">
+        <h4>自定义设置</h4>
+        <div class="custom-settings">
+            <div class="setting-group">
+                <label for="novelTitle">小说标题</label>
+                <input type="text" id="novelTitle" placeholder="输入小说标题">
+            </div>
+            <div class="setting-group">
+                <label for="novelTheme">主题</label>
+                <input type="text" id="novelTheme" placeholder="例如：爱情、冒险、成长">
+            </div>
+            <div class="setting-group">
+                <label for="targetAudience">目标读者</label>
+                <select id="targetAudience">
+                    <option value="">选择目标读者</option>
+                    <option value="young_adult">青年读者</option>
+                    <option value="adult">成年读者</option>
+                    <option value="general">大众读者</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label for="writingStyle">写作风格</label>
+                <select id="writingStyle">
+                    <option value="">选择写作风格</option>
+                    <option value="casual">轻松休闲</option>
+                    <option value="serious">严肃深刻</option>
+                    <option value="humorous">幽默风趣</option>
+                    <option value="dramatic">戏剧性</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label for="plotComplexity">情节复杂度</label>
+                <select id="plotComplexity">
+                    <option value="">选择复杂度</option>
+                    <option value="simple">简单直接</option>
+                    <option value="moderate">适中</option>
+                    <option value="complex">复杂多线</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label for="specialRequirements">特殊要求</label>
+                <textarea id="specialRequirements" rows="3" placeholder="描述任何特殊要求或偏好..."></textarea>
+            </div>
+        </div>
+        
+        <div class="agent-actions" style="margin-top: 25px;">
+            <button class="btn btn-primary" onclick="createGenreOutline()">
+                📝 创建大纲
+            </button>
+            <button class="btn btn-secondary" onclick="startCollaborativeWorkflow()">
+                🔄 协作工作流
+            </button>
+            <button class="btn" onclick="getRecommendations()" style="background: #17a2b8; color: white;">
+                💡 获取推荐
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 智能体选择区域 -->
+<div class="card">
+    <h3>🤖 选择AI智能体类型</h3>
+    <p>选择适合您创作需求的专业智能体，每个智能体都针对特定类型进行了优化。</p>
+    
+    <div class="agents-container" id="agentsContainer">
+        <!-- 智能体卡片将通过JavaScript动态加载 -->
+    </div>
+</div>
+
+<!-- 工作流状态面板 -->
+<div class="workflow-status" id="workflowStatus" style="display: none;">
+    <h4>📈 工作流进度</h4>
+    <div id="workflowSteps"></div>
+</div>
+
+<!-- 悬浮操作按钮 -->
+<button class="floating-action" onclick="showQuickStart()" title="快速开始">
+    ⚡
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedAgentType = null;
+let agentsData = {};
+
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    loadAgents();
+});
+
+// 加载智能体信息
+async function loadAgents() {
+    try {
+        const result = await apiCall('/api/agents/list');
+        if (result.success) {
+            agentsData = result.data.detailed_info;
+            renderAgents();
+        }
+    } catch (error) {
+        console.error('加载智能体失败:', error);
+        showAlert('加载智能体信息失败', 'error');
+    }
+}
+
+// 渲染智能体卡片
+function renderAgents() {
+    const container = document.getElementById('agentsContainer');
+    container.innerHTML = '';
+    
+    Object.entries(agentsData).forEach(([type, info]) => {
+        const card = createAgentCard(type, info);
+        container.appendChild(card);
+    });
+}
+
+// 创建智能体卡片
+function createAgentCard(type, info) {
+    const card = document.createElement('div');
+    card.className = 'agent-card';
+    card.setAttribute('data-agent-type', type);
+    card.style.borderColor = info.color + '20';
+    
+    const gradientOverlay = `linear-gradient(135deg, ${info.color}10 0%, ${info.color}05 100%)`;
+    card.style.background = gradientOverlay;
+    
+    card.innerHTML = `
+        <div class="agent-header">
+            <div class="agent-icon" style="background: ${info.color}15; color: ${info.color};">
+                ${info.icon}
+            </div>
+            <div class="agent-title">
+                <h3>${info.name}</h3>
+                <div class="genre-keywords">${info.keywords.join(' • ')}</div>
+            </div>
+        </div>
+        <div class="agent-description">
+            ${info.description}
+        </div>
+        <div class="agent-features">
+            ${info.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
+        </div>
+        <div class="agent-actions">
+            <button class="btn-agent btn-primary" onclick="selectAgent('${type}')">
+                选择此类型
+            </button>
+            <button class="btn-agent btn-secondary" onclick="previewAgent('${type}')">
+                预览效果
+            </button>
+        </div>
+    `;
+    
+    return card;
+}
+
+// 选择智能体
+function selectAgent(agentType) {
+    selectedAgentType = agentType;
+    
+    // 更新视觉状态
+    document.querySelectorAll('.agent-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    document.querySelector(`[data-agent-type="${agentType}"]`).classList.add('selected');
+    
+    // 更新选择面板
+    updateSelectionPanel(agentType);
+    
+    // 显示设置面板
+    document.getElementById('customSettingsPanel').style.display = 'block';
+    
+    showAlert(`已选择 ${agentsData[agentType].name} 智能体`, 'success');
+}
+
+// 更新选择面板
+function updateSelectionPanel(agentType) {
+    const info = agentsData[agentType];
+    const panel = document.getElementById('selectedAgent');
+    
+    panel.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="font-size: 2rem; margin-right: 15px;">${info.icon}</div>
+            <div>
+                <h4 style="margin: 0; color: ${info.color};">${info.name}</h4>
+                <p style="margin: 5px 0 0 0; color: #666;">${info.description}</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            ${info.features.map(feature => 
+                `<span style="background: ${info.color}15; color: ${info.color}; padding: 4px 8px; border-radius: 12px; font-size: 0.85rem;">
+                    ${feature}
+                </span>`
+            ).join('')}
+        </div>
+    `;
+}
+
+// 预览智能体效果
+async function previewAgent(agentType) {
+    const info = agentsData[agentType];
+    
+    // 显示预览弹窗或模态框
+    const modal = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;" onclick="this.remove()">
+            <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;" onclick="event.stopPropagation();">
+                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                    <div style="font-size: 3rem; margin-right: 20px;">${info.icon}</div>
+                    <div>
+                        <h3 style="margin: 0; color: ${info.color};">${info.name}</h3>
+                        <p style="margin: 5px 0 0 0; color: #666;">智能体预览</p>
+                    </div>
+                </div>
+                <p><strong>适用类型：</strong>${info.keywords.join('、')}</p>
+                <p><strong>核心功能：</strong></p>
+                <ul>
+                    ${info.features.map(feature => `<li>${feature}</li>`).join('')}
+                </ul>
+                <p><strong>创作特色：</strong>${info.description}</p>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn" onclick="this.closest('div[style*=\"position: fixed\"]').remove()">关闭</button>
+                    <button class="btn btn-primary" onclick="selectAgent('${agentType}'); this.closest('div[style*=\"position: fixed\"]').remove();">选择此类型</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+}
+
+// 获取自定义设置
+function getCustomSettings() {
+    return {
+        novel_title: document.getElementById('novelTitle').value,
+        theme: document.getElementById('novelTheme').value,
+        target_audience: document.getElementById('targetAudience').value,
+        writing_style: document.getElementById('writingStyle').value,
+        plot_complexity: document.getElementById('plotComplexity').value,
+        special_requirements: document.getElementById('specialRequirements').value
+    };
+}
+
+// 创建类型化大纲
+async function createGenreOutline() {
+    if (!selectedAgentType) {
+        showAlert('请先选择智能体类型', 'error');
+        return;
+    }
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> 创建中...';
+    
+    try {
+        const customSettings = getCustomSettings();
+        const result = await apiCall(`/api/agents/${selectedAgentType}/outline`, 'POST', {
+            custom_settings: customSettings
+        });
+        
+        if (result.success) {
+            showAlert('专业大纲创建成功！', 'success');
+            // 可以跳转到章节页面或显示大纲内容
+            setTimeout(() => {
+                window.location.href = '/chapters';
+            }, 1500);
+        } else {
+            showAlert('大纲创建失败：' + result.message, 'error');
+        }
+    } catch (error) {
+        showAlert('创建失败：' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📝 创建大纲';
+    }
+}
+
+// 开始协作工作流
+async function startCollaborativeWorkflow() {
+    if (!selectedAgentType) {
+        showAlert('请先选择智能体类型', 'error');
+        return;
+    }
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> 启动中...';
+    
+    // 显示工作流状态面板
+    document.getElementById('workflowStatus').style.display = 'block';
+    updateWorkflowStatus('开始协作工作流...', 'active');
+    
+    try {
+        const customSettings = getCustomSettings();
+        const result = await apiCall('/api/agents/collaborative', 'POST', {
+            genre: selectedAgentType,
+            platform: 'tomato_novel',
+            custom_settings: customSettings
+        });
+        
+        if (result.success) {
+            const workflow = result.data;
+            updateWorkflowStatus('工作流执行成功', 'completed');
+            
+            // 显示执行结果
+            displayWorkflowResult(workflow);
+            showAlert('协作工作流执行成功！', 'success');
+        } else {
+            updateWorkflowStatus('工作流执行失败', 'error');
+            showAlert('工作流执行失败：' + result.message, 'error');
+        }
+    } catch (error) {
+        updateWorkflowStatus('工作流执行出错', 'error');
+        showAlert('执行失败：' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔄 协作工作流';
+    }
+}
+
+// 更新工作流状态
+function updateWorkflowStatus(message, status) {
+    const stepsContainer = document.getElementById('workflowSteps');
+    const stepElement = document.createElement('div');
+    stepElement.className = `workflow-step ${status}`;
+    stepElement.innerHTML = `
+        <div class="step-icon">
+            ${status === 'active' ? '⏳' : status === 'completed' ? '✅' : '❌'}
+        </div>
+        <div>${message}</div>
+    `;
+    stepsContainer.appendChild(stepElement);
+    
+    // 滚动到最新状态
+    stepElement.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 显示工作流结果
+function displayWorkflowResult(workflow) {
+    const resultPanel = document.createElement('div');
+    resultPanel.style.cssText = `
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border-left: 4px solid #28a745;
+    `;
+    
+    resultPanel.innerHTML = `
+        <h4>🎉 工作流执行完成</h4>
+        <p><strong>使用的智能体：</strong>${workflow.agents_used.join(', ')}</p>
+        <p><strong>创作类型：</strong>${workflow.genre}</p>
+        <p><strong>发布平台：</strong>${workflow.platform}</p>
+        <div style="margin-top: 15px;">
+            <button class="btn btn-primary" onclick="window.location.href='/chapters'">查看生成内容</button>
+            <button class="btn btn-secondary" onclick="location.reload()">重新开始</button>
+        </div>
+    `;
+    
+    document.getElementById('workflowStatus').appendChild(resultPanel);
+}
+
+// 获取智能推荐
+async function getRecommendations() {
+    const customSettings = getCustomSettings();
+    
+    // 构建需求描述
+    const requirements = {
+        genre: selectedAgentType || '',
+        theme: customSettings.theme,
+        style: customSettings.writing_style,
+        complexity: customSettings.plot_complexity,
+        audience: customSettings.target_audience
+    };
+    
+    try {
+        const result = await apiCall('/api/genres/recommendations', 'POST', {
+            requirements: requirements
+        });
+        
+        if (result.success) {
+            displayRecommendations(result.data.recommendations);
+        } else {
+            showAlert('获取推荐失败：' + result.message, 'error');
+        }
+    } catch (error) {
+        showAlert('获取推荐出错：' + error.message, 'error');
+    }
+}
+
+// 显示推荐结果
+function displayRecommendations(recommendations) {
+    const panel = document.getElementById('recommendationPanel');
+    const list = document.getElementById('recommendationList');
+    
+    list.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <strong>${agentsData[rec.type]?.name || rec.type}</strong>
+                    <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">${rec.reason}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.2rem; font-weight: bold;">${Math.round(rec.confidence * 100)}%</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">匹配度</div>
+                </div>
+            </div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${rec.confidence * 100}%;"></div>
+            </div>
+            <div style="margin-top: 10px;">
+                <button class="btn btn-sm" onclick="selectAgent('${rec.type}')" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    选择此类型
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 快速开始
+function showQuickStart() {
+    const modal = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;" onclick="this.remove()">
+            <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;" onclick="event.stopPropagation();">
+                <h3>⚡ 快速开始</h3>
+                <p>选择一个快速创作选项：</p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-primary" onclick="quickStart('romance')">💕 快速创建言情小说</button>
+                    <button class="btn btn-primary" onclick="quickStart('fantasy')">⚔️ 快速创建玄幻小说</button>
+                    <button class="btn btn-primary" onclick="quickStart('urban')">🏙️ 快速创建都市小说</button>
+                    <button class="btn btn-secondary" onclick="this.closest('div[style*=\"position: fixed\"]').remove()">取消</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+}
+
+// 快速开始创作
+async function quickStart(agentType) {
+    // 关闭弹窗
+    document.querySelector('div[style*="position: fixed"]').remove();
+    
+    // 选择智能体
+    selectAgent(agentType);
+    
+    // 设置一些默认值
+    document.getElementById('novelTitle').value = `我的${agentsData[agentType].name}`;
+    document.getElementById('targetAudience').value = 'general';
+    document.getElementById('writingStyle').value = 'casual';
+    
+    // 滚动到设置面板
+    document.getElementById('customSettingsPanel').scrollIntoView({ behavior: 'smooth' });
+    
+    showAlert(`已快速选择 ${agentsData[agentType].name}，请完善设置后开始创作`, 'success');
+}
+</script>
+{% endblock %}
