@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小说管理器 - AI小说生成系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .novel-info {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .novel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .novel-meta {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chapter-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .chapter-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .chapter-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .chapter-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-meta {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .content-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-meta {
+            display: flex;
+            gap: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            line-height: 2;
+            font-size: 1.1rem;
+        }
+
+        .content-actions {
+            padding: 1rem 2rem;
+            border-top: 2px solid #f0f0f0;
+            background: rgba(102, 126, 234, 0.05);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            color: #666;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading .spinner {
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #667eea;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+        }
+
+        .chapter-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .chapter-content h2 {
+            color: #667eea;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-indent: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-content">
+            <h1>📖 小说管理器</h1>
+            <div class="nav-buttons">
+                <button class="btn secondary" onclick="generateNewChapter()">生成新章节</button>
+                <a href="/" class="btn">返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="novel-info">
+                <div class="novel-title" id="novelTitle">加载中...</div>
+                <div class="novel-meta">
+                    <div>类型：<span id="novelGenre">-</span></div>
+                    <div>主题：<span id="novelTheme">-</span></div>
+                </div>
+                <div class="stats-grid" style="margin-top: 1rem;">
+                    <div class="stat-item">
+                        <div class="stat-number" id="chapterCount">-</div>
+                        <div class="stat-label">章节</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalWords">-</div>
+                        <div class="stat-label">字数</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chapter-list" id="chapterList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>加载章节列表...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">📚</div>
+                <div class="welcome-title">选择章节开始阅读</div>
+                <p>点击左侧章节列表中的任意章节来查看内容</p>
+            </div>
+
+            <div class="content-header" id="contentHeader" style="display: none;">
+                <div class="content-title" id="contentTitle">章节标题</div>
+                <div class="content-meta">
+                    <span>字数：<span id="contentWordCount">-</span></span>
+                    <span>创建时间：<span id="contentCreatedAt">-</span></span>
+                </div>
+            </div>
+
+            <div class="content-body" id="contentBody" style="display: none;">
+                <div class="loading" id="contentLoading">
+                    <div class="spinner"></div>
+                    <p>加载章节内容...</p>
+                </div>
+                <div class="chapter-content" id="chapterContent"></div>
+            </div>
+
+            <div class="content-actions" id="contentActions" style="display: none;">
+                <button class="btn secondary" onclick="editChapter()">编辑章节</button>
+                <button class="btn secondary" onclick="optimizeChapter()">智能优化</button>
+                <button class="btn" onclick="regenerateChapter()">重新生成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑章节模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            <h2>编辑章节</h2>
+            <div style="margin: 1.5rem 0;">
+                <label for="editTitle" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">章节标题</label>
+                <input type="text" id="editTitle" style="width: 100%; padding: 0.7rem; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 1rem;">
+            </div>
+            <div style="margin: 1.5rem 0;">
+                <label for="editContent" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">章节内容</label>
+                <textarea id="editContent" class="edit-textarea" placeholder="在此编辑章节内容..."></textarea>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn" onclick="saveChapterEdit()">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChapterNumber = null;
+        let novelData = null;
+        let chaptersData = [];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNovelData();
+        });
+
+        async function loadNovelData() {
+            try {
+                // 并行加载大纲和章节数据
+                const [outlineRes, chaptersRes] = await Promise.all([
+                    fetch('/api/outline'),
+                    fetch('/api/chapters')
+                ]);
+
+                const outlineData = await outlineRes.json();
+                const chaptersResponse = await chaptersRes.json();
+
+                if (outlineData.success) {
+                    novelData = outlineData.data;
+                    updateNovelInfo();
+                }
+
+                if (chaptersResponse.success) {
+                    chaptersData = chaptersResponse.data;
+                    updateChapterList();
+                    updateStats();
+                } else {
+                    document.getElementById('chapterList').innerHTML = '<p style="text-align: center; color: #666;">暂无章节</p>';
+                }
+
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('chapterList').innerHTML = '<p style="text-align: center; color: #f44336;">加载失败</p>';
+            }
+        }
+
+        function updateNovelInfo() {
+            if (!novelData) return;
+            
+            document.getElementById('novelTitle').textContent = novelData.novel_title || '未命名小说';
+            document.getElementById('novelGenre').textContent = novelData.genre || '未知';
+            document.getElementById('novelTheme').textContent = novelData.theme || '未设定';
+        }
+
+        function updateChapterList() {
+            const listElement = document.getElementById('chapterList');
+            
+            if (chaptersData.length === 0) {
+                listElement.innerHTML = '<p style="text-align: center; color: #666;">暂无章节</p>';
+                return;
+            }
+
+            const html = chaptersData.map(chapter => `
+                <div class="chapter-item" onclick="loadChapter(${chapter.chapter_number})">
+                    <div class="chapter-title">第${chapter.chapter_number}章 ${chapter.title || ''}</div>
+                    <div class="chapter-meta">${chapter.word_count || 0}字 · ${formatDate(chapter.created_at)}</div>
+                </div>
+            `).join('');
+
+            listElement.innerHTML = html;
+        }
+
+        function updateStats() {
+            const totalWords = chaptersData.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+            
+            document.getElementById('chapterCount').textContent = chaptersData.length;
+            document.getElementById('totalWords').textContent = totalWords.toLocaleString();
+        }
+
+        async function loadChapter(chapterNumber) {
+            currentChapterNumber = chapterNumber;
+            
+            // 更新章节列表选中状态
+            document.querySelectorAll('.chapter-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // 显示加载状态
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('contentHeader').style.display = 'block';
+            document.getElementById('contentBody').style.display = 'block';
+            document.getElementById('contentActions').style.display = 'flex';
+            document.getElementById('contentLoading').style.display = 'block';
+            document.getElementById('chapterContent').style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/chapters/${chapterNumber}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const chapter = data.data;
+                    
+                    // 更新标题和元数据
+                    document.getElementById('contentTitle').textContent = `第${chapter.chapter_number}章 ${chapter.title || ''}`;
+                    document.getElementById('contentWordCount').textContent = (chapter.word_count || 0).toLocaleString();
+                    document.getElementById('contentCreatedAt').textContent = formatDate(chapter.created_at);
+
+                    // 更新内容
+                    const content = chapter.content || '';
+                    // 简单的内容格式化
+                    const formattedContent = formatChapterContent(content);
+                    document.getElementById('chapterContent').innerHTML = formattedContent;
+
+                    // 隐藏加载状态
+                    document.getElementById('contentLoading').style.display = 'none';
+                    document.getElementById('chapterContent').style.display = 'block';
+                } else {
+                    throw new Error(data.message);
+                }
+
+            } catch (error) {
+                console.error('加载章节失败:', error);
+                document.getElementById('contentLoading').innerHTML = `<p style="color: #f44336;">加载失败: ${error.message}</p>`;
+            }
+        }
+
+        function formatChapterContent(content) {
+            if (!content) return '<p>暂无内容</p>';
+            
+            // 移除 <think> 标签内容
+            content = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+            
+            // 处理 markdown 格式的标题
+            content = content.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            content = content.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            
+            // 处理分隔线
+            content = content.replace(/^---+$/gm, '<hr>');
+            
+            // 处理段落
+            const paragraphs = content.split('\n').filter(p => p.trim());
+            const formattedParagraphs = paragraphs.map(p => {
+                p = p.trim();
+                if (p.startsWith('<h2>') || p.startsWith('<h3>') || p.startsWith('<hr>')) {
+                    return p;
+                }
+                if (p.startsWith('*')) {
+                    return `<p style="margin-left: 2rem; font-style: italic;">${p.substring(1).trim()}</p>`;
+                }
+                return `<p>${p}</p>`;
+            });
+            
+            return formattedParagraphs.join('\n');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '未知';
+            return new Date(dateString).toLocaleString('zh-CN');
+        }
+
+        async function generateNewChapter() {
+            if (!confirm('确认生成新章节？这可能需要几分钟时间。')) return;
+
+            try {
+                const response = await fetch('/api/chapters/generate', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ 新章节生成成功！');
+                    location.reload(); // 刷新页面以显示新章节
+                } else {
+                    alert('❌ 生成失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ 生成过程出现错误: ' + error.message);
+            }
+        }
+
+        function editChapter() {
+            if (!currentChapterNumber) return;
+
+            const currentChapter = chaptersData.find(ch => ch.chapter_number === currentChapterNumber);
+            if (!currentChapter) return;
+
+            document.getElementById('editTitle').value = currentChapter.title || '';
+            document.getElementById('editContent').value = currentChapter.content || '';
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveChapterEdit() {
+            const newTitle = document.getElementById('editTitle').value;
+            const newContent = document.getElementById('editContent').value;
+
+            if (!newContent.trim()) {
+                alert('章节内容不能为空！');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/chapters/${currentChapterNumber}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        content: newContent
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ 修改已保存！');
+                    closeEditModal();
+                    loadChapter(currentChapterNumber); // 重新加载章节
+                    loadNovelData(); // 刷新章节列表
+                } else {
+                    alert('❌ 保存失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ 保存过程出现错误: ' + error.message);
+            }
+        }
+
+        async function optimizeChapter() {
+            if (!currentChapterNumber) return;
+
+            const feedback = prompt('请输入优化建议（可选）：', '提升文笔质量和逻辑连贯性');
+            if (feedback === null) return; // 用户取消
+
+            try {
+                const response = await fetch(`/api/chapters/${currentChapterNumber}/optimize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ feedback: feedback })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ 章节优化完成！');
+                    loadChapter(currentChapterNumber); // 重新加载章节
+                } else {
+                    alert('❌ 优化失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ 优化过程出现错误: ' + error.message);
+            }
+        }
+
+        async function regenerateChapter() {
+            if (!currentChapterNumber) return;
+            
+            if (!confirm('确认重新生成这一章？原内容将被覆盖！')) return;
+
+            try {
+                const response = await fetch(`/api/chapters/${currentChapterNumber}/regenerate`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ 章节重新生成完成！');
+                    loadChapter(currentChapterNumber); // 重新加载章节
+                } else {
+                    alert('❌ 重新生成失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ 重新生成过程出现错误: ' + error.message);
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>
