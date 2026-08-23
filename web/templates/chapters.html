@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}章节管理 - 小说生成系统{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>📚 章节列表</h3>
+    <div id="chapters-list">
+        <p>加载中...</p>
+    </div>
+</div>
+
+<div id="chapter-detail" style="display: none;">
+    <div class="card">
+        <h3 id="chapter-title"></h3>
+        <p><strong>字数：</strong><span id="chapter-wordcount"></span></p>
+        <div id="chapter-content" style="line-height: 1.8; white-space: pre-wrap;"></div>
+        <hr style="margin: 20px 0;">
+        <h4>优化章节</h4>
+        <textarea id="feedback-input" placeholder="输入反馈意见，例如：情节发展太快，需要更多细节描写"></textarea>
+        <button class="btn" onclick="optimizeChapter()">提交优化</button>
+        <button class="btn" onclick="closeDetail()" style="background: #6c757d;">关闭</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentChapter = null;
+    
+    // 加载章节列表
+    async function loadChapters() {
+        const result = await apiCall('/api/chapters');
+        const listDiv = document.getElementById('chapters-list');
+        
+        if (result.success && result.data.length > 0) {
+            const chapters = result.data;
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">';
+            html += '<th style="padding: 10px; text-align: left;">章节</th>';
+            html += '<th style="padding: 10px; text-align: left;">标题</th>';
+            html += '<th style="padding: 10px; text-align: center;">字数</th>';
+            html += '<th style="padding: 10px; text-align: center;">操作</th>';
+            html += '</tr>';
+            
+            chapters.forEach(ch => {
+                html += '<tr style="border-bottom: 1px solid #dee2e6;">';
+                html += `<td style="padding: 10px;">第${ch.chapter_number}章</td>`;
+                html += `<td style="padding: 10px;">${ch.title || 'N/A'}</td>`;
+                html += `<td style="padding: 10px; text-align: center;">${ch.word_count || 0}</td>`;
+                html += `<td style="padding: 10px; text-align: center;">`;
+                html += `<button class="btn" style="padding: 6px 12px; font-size: 14px;" onclick="viewChapter(${ch.chapter_number})">查看</button>`;
+                html += `</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            listDiv.innerHTML = html;
+        } else {
+            listDiv.innerHTML = '<p>暂无章节</p>';
+        }
+    }
+    
+    // 查看章节详情
+    async function viewChapter(chapterNumber) {
+        const result = await apiCall(`/api/chapters/${chapterNumber}`);
+        
+        if (result.success) {
+            currentChapter = chapterNumber;
+            const chapter = result.data;
+            
+            document.getElementById('chapter-title').textContent = `第${chapter.chapter_number}章 ${chapter.title}`;
+            document.getElementById('chapter-wordcount').textContent = chapter.word_count || 0;
+            document.getElementById('chapter-content').textContent = chapter.content || '';
+            document.getElementById('chapter-detail').style.display = 'block';
+            
+            // 滚动到详情
+            document.getElementById('chapter-detail').scrollIntoView({behavior: 'smooth'});
+        } else {
+            showAlert('加载章节失败：' + result.message, 'error');
+        }
+    }
+    
+    // 优化章节
+    async function optimizeChapter() {
+        const feedback = document.getElementById('feedback-input').value;
+        if (!feedback) {
+            showAlert('请输入反馈意见', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 优化中...';
+        
+        const result = await apiCall(`/api/chapters/${currentChapter}/optimize`, 'POST', {feedback: feedback});
+        
+        btn.disabled = false;
+        btn.textContent = '提交优化';
+        
+        if (result.success) {
+            showAlert('章节优化成功！', 'success');
+            document.getElementById('feedback-input').value = '';
+            viewChapter(currentChapter);
+            loadChapters();
+        } else {
+            showAlert('优化失败：' + result.message, 'error');
+        }
+    }
+    
+    // 关闭详情
+    function closeDetail() {
+        document.getElementById('chapter-detail').style.display = 'none';
+        currentChapter = null;
+    }
+    
+    // 页面加载时执行
+    window.onload = function() {
+        loadChapters();
+    };
+</script>
+{% endblock %}
+
