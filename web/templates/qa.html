@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}智能问答 - 小说生成系统{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>🤖 智能问答</h3>
+    <p>基于已生成的小说内容进行问答，所有答案仅来源于本系统生成的内容。</p>
+    <button class="btn" onclick="rebuildIndex()">重建索引</button>
+</div>
+
+<div class="card">
+    <h3>💬 提问</h3>
+    <textarea id="question-input" placeholder="输入您的问题，例如：&#10;- 主角是谁？&#10;- 故事发生在什么地方？&#10;- 第三章讲了什么？"></textarea>
+    <button class="btn" onclick="askQuestion()">提问</button>
+</div>
+
+<div id="answer-section" style="display: none;">
+    <div class="card">
+        <h3>💡 回答</h3>
+        <div id="answer-content" style="line-height: 1.8; white-space: pre-wrap;"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🔍 关键词搜索</h3>
+    <input type="text" id="keyword-input" placeholder="输入关键词搜索章节">
+    <button class="btn" onclick="searchKeyword()">搜索</button>
+    <div id="search-results" style="margin-top: 15px;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 重建索引
+    async function rebuildIndex() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 索引中...';
+        
+        const result = await apiCall('/api/qa/index', 'POST');
+        
+        btn.disabled = false;
+        btn.textContent = '重建索引';
+        
+        if (result.success) {
+            showAlert('索引重建成功！', 'success');
+        } else {
+            showAlert('索引重建失败：' + result.message, 'error');
+        }
+    }
+    
+    // 提问
+    async function askQuestion() {
+        const question = document.getElementById('question-input').value;
+        if (!question) {
+            showAlert('请输入问题', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 思考中...';
+        
+        const result = await apiCall('/api/qa/query', 'POST', {question: question});
+        
+        btn.disabled = false;
+        btn.textContent = '提问';
+        
+        if (result.success) {
+            document.getElementById('answer-content').textContent = result.answer;
+            document.getElementById('answer-section').style.display = 'block';
+            document.getElementById('answer-section').scrollIntoView({behavior: 'smooth'});
+        } else {
+            showAlert('查询失败：' + result.message, 'error');
+        }
+    }
+    
+    // 关键词搜索
+    async function searchKeyword() {
+        const keyword = document.getElementById('keyword-input').value;
+        if (!keyword) {
+            showAlert('请输入关键词', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 搜索中...';
+        
+        const result = await apiCall('/api/qa/search', 'POST', {keyword: keyword});
+        
+        btn.disabled = false;
+        btn.textContent = '搜索';
+        
+        const resultsDiv = document.getElementById('search-results');
+        
+        if (result.success) {
+            if (result.data.length > 0) {
+                let html = '<h4>搜索结果：</h4>';
+                result.data.forEach(item => {
+                    html += `<div style="padding: 10px; margin: 10px 0; background: #f8f9fa; border-left: 3px solid #667eea;">`;
+                    html += `<strong>第${item.chapter}章 ${item.title}</strong><br>`;
+                    html += `<span style="color: #666;">${item.context}</span>`;
+                    html += `</div>`;
+                });
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = '<p>未找到相关内容</p>';
+            }
+        } else {
+            showAlert('搜索失败：' + result.message, 'error');
+        }
+    }
+    
+    // 回车提问
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('question-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+    });
+</script>
+{% endblock %}
+
