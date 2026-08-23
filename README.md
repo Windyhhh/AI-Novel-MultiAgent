@@ -1,362 +1,737 @@
-# 📚 AI小说多智能体创作系统 | AI Novel Multi-Agent Creation System
+# 📚 AI 小说多智能体创作系统 | AI Novel Multi-Agent Writing System
 
-> **AI Novel Multi-Agent Creation System**
+> **基于多智能体协作的 AI 小说创作系统——大纲设计、角色构建、情节规划、章节写作、风格统一、质量审核，打造你的 AI 小说创作工坊。**
 >
-> 基于多智能体协作的 AI 小说创作平台，融合大纲生成、章节规划、内容创作、角色记忆、情节追踪等 16 个专业智能体，通过人性化后处理去除 AI 味，实现"像人写的"小说创作。支持 Web 界面、定时调度、飞书集成。
->
-> An AI novel creation platform with 16 specialized agents (outline, chapter planning, content generation, character memory, plot tracking). Humanized post-processing removes AI flavor for "human-like" writing. Supports Web UI, scheduling, and Feishu integration.
+> *AI novel writing system based on multi-agent collaboration — outline design, character building, plot planning, chapter writing, style consistency, quality review, building your AI novel writing workshop.*
 
 ---
 
-## ✨ 核心亮点
+## ⭐ 核心卖点 | Why Star This
 
-| 维度 | 详情 |
-|------|------|
-| 🤖 多智能体 | **16 个**专业智能体协作创作 |
-| 🧠 角色记忆 | 持久化角色设定与行为一致性 |
-| 📝 去 AI 味 | 人性化后处理，目标 AI 感 ≤ 20% |
-| 🎯 采样策略 | 4 套预设（默认/动作/对话/描写），参考 Kobold/NovelAI |
-| 🌐 Web 界面 | Flask 全功能创作管理后台 |
-| ⏰ 定时调度 | 每日自动生成章节，可配置时间和数量 |
-| 💬 智能问答 | 基于已有内容的 QA 检索系统 |
-| 📤 飞书集成 | 自动同步到飞书文档 |
+| 卖点 | Feature | 一句话 |
+|------|---------|--------|
+| 🤖 **多智能体协作** | Multi-Agent Collaboration | 作家、编辑、角色、评论家等多智能体协同创作 |
+| 📖 **完整创作流程** | Full Writing Pipeline | 从灵感、大纲、角色到章节、审校的全流程自动化 |
+| 🎭 **角色一致性** | Character Consistency | 角色记忆系统，保持人物性格和行为一致性 |
+| ✍️ **风格可控** | Style Control | 支持多种文风，可模仿指定作家风格 |
+| 🔍 **质量审核** | Quality Review | AI 编辑自动审核逻辑、节奏、文笔，给出修改建议 |
 
 ---
 
-## 🏗️ 多智能体架构
+## 🏆 技术栈 | Tech Stack
+
+![Python](https://img.shields.io/badge/Python-3.9+-blue?logo=python)
+![LangChain](https://img.shields.io/badge/LangChain-0.1+-green?logo=langchain)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-teal?logo=fastapi)
+![Vue.js](https://img.shields.io/badge/Vue-3.0+-brightgreen?logo=vuedotjs)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue?logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-7.0+-red?logo=redis)
+![Vector DB](https://img.shields.io/badge/VectorDB-Chroma-orange?logo=chroma)
+![Docker](https://img.shields.io/badge/Docker-24.0+-blue?logo=docker)
+
+---
+
+## 📊 智能体架构 | Agent Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Agent Orchestrator                         │
-│              （智能体编排器，调度全流程）                      │
-└──────────────┬──────────────────────────────────────────────┘
-               │
-    ┌──────────┼──────────┬──────────┬──────────┐
-    ▼          ▼          ▼          ▼          ▼
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│大纲智能体│ │章节规划│ │内容生成│ │角色记忆│ │情节追踪│
-│Outline │ │Chapter │ │Content │ │Character│ │Plot   │
-│Agent   │ │Planning│ │Gen     │ │Memory  │ │Tracker│
-└────────┘ └────────┘ └───┬────┘ └────────┘ └────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │分层生成器  │ │人性化生成 │ │悬疑专项   │
-        │Hierarch- │ │Human-like│ │Mystery   │
-        │ical      │ │Generator │ │Agent     │
-        └──────────┘ └──────────┘ └──────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        🎬 总控智能体 (Orchestrator)                   │
+│              协调各智能体，管理创作流程，分配任务                      │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
+│  📝 策划智能体      │ │  ✍️ 写作智能体      │ │  🔍 编辑智能体      │
+│  (Planner Agent)   │ │  (Writer Agent)    │ │  (Editor Agent)    │
+│                    │ │                    │ │                    │
+│  - 灵感生成         │ │  - 章节写作         │ │  - 逻辑检查         │
+│  - 大纲设计         │ │  - 对话生成         │ │  - 节奏把控         │
+│  - 情节规划         │ │  - 场景描写         │ │  - 文笔润色         │
+│  - 世界观构建       │ │  - 心理描写         │ │  - 风格统一         │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+          │                     │                     │
+          └─────────────────────┼─────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
+│  🎭 角色智能体      │ │  📚 知识智能体      │ │  ⭐ 评论智能体      │
+│  (Character Agent) │ │  (Knowledge Agent) │ │  (Critic Agent)    │
+│                    │ │                    │ │                    │
+│  - 角色设定         │ │  - 设定检索         │ │  - 质量评分         │
+│  - 性格模拟         │ │  - 前文回顾         │ │  - 优缺点分析       │
+│  - 对话风格         │ │  - 伏笔管理         │ │  - 改进建议         │
+│  - 行为决策         │ │  - 一致性检查       │ │  - 读者视角         │
+└───────────────────┘ └───────────────────┘ └───────────────────┘
 ```
 
-### 智能体清单
-
-| 智能体 | 文件 | 职责 |
-|--------|------|------|
-| 🎼 编排器 | `agent_orchestrator.py` | 全流程调度，智能体协作管理 |
-| 🏭 工厂 | `agent_factory.py` | 智能体实例化与配置 |
-| 📋 大纲 | `outline_agent.py` | 小说大纲生成与优化 |
-| 📖 章节规划 | `chapter_planning_agent.py` | 单章内容规划与节奏控制 |
-| ✍️ 内容生成 | `content_generation_agent.py` | 正文内容生成 |
-| 🎭 角色记忆 | `character_memory_agent.py` | 角色设定持久化，行为一致性 |
-| 🧩 情节追踪 | `plot_tracker_agent.py` | 伏笔追踪，情节连贯性 |
-| 🏔️ 分层生成 | `hierarchical_generator.py` | 从大纲到段落的分层生成 |
-| 🧑 人性化 | `human_like_generator.py` | 去 AI 味，句长变异，词汇多样性 |
-| 🔍 悬疑专项 | `mystery_agent.py` | 悬疑类小说专项优化 |
-| 🍅 番茄专项 | `tomato_novel_agent.py` | 番茄小说风格适配 |
-| ⚡ 集成优化 | `integrated_optimization_pipeline.py` | 全链路质量优化 |
-
 ---
 
-## 🎨 人性化后处理（去 AI 味）
-
-系统内置多轮迭代的人性化后处理管线，目标：
-
-| 指标 | 目标值 | 说明 |
-|------|--------|------|
-| 总体质量分 | ≥ 85.0 | 综合质量评分 |
-| 人类感分 | ≥ 80.0 | 拟人化程度 |
-| AI 感上限 | ≤ 20.0 | 越低越好 |
-| 句长变异系数 | ≥ 0.5 | burstiness，避免句式单调 |
-| 词汇多样性 (TTR) | ≥ 0.6 | lexical diversity，避免重复用词 |
-
-### 处理模式
-
-| 模式 | 迭代轮数 | 适用场景 |
-|------|---------|---------|
-| `standard` | 1 轮 | 快速生成，日常更新 |
-| `high` | 2 轮 | 质量优先，推荐默认 |
-| `premium` | 3 轮 | 极致质量，关键章节 |
-
----
-
-## 🎯 采样策略预设
-
-参考 Kobold / NovelAI 的专业采样配置，内置 4 套预设：
-
-| 预设 | Temperature | Top P | Presence Penalty | Frequency Penalty | 适用场景 |
-|------|------------|-------|-----------------|------------------|---------|
-| **default** | 0.8 | 0.9 | 0.3 | 0.2 | 通用创作 |
-| **action** | 0.9 | 0.85 | 0.4 | 0.4 | 动作场景，节奏快 |
-| **dialogue** | 0.7 | 0.9 | 0.2 | 0.3 | 对话场景，更稳定 |
-| **description** | 0.8 | 0.95 | 0.1 | 0.1 | 环境描写，更发散 |
-
----
-
-## 🚀 快速开始
-
-### 环境要求
+## 🚀 快速开始 | Quick Start
 
 ```bash
-Python >= 3.8
-Flask >= 2.0
-requests >= 2.25
-PyYAML >= 5.4
-python-dotenv >= 0.19
-```
-
-### 安装步骤
-
-```bash
-# 1. 克隆项目
 git clone https://github.com/Windyhhh/AI-Novel-MultiAgent.git
 cd AI-Novel-MultiAgent
 
-# 2. 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# 1. 启动依赖服务
+docker-compose up -d postgres redis chroma
 
-# 3. 安装依赖
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入大模型 API Key (支持 OpenAI / Qwen / 本地模型)
+
+# 3. 安装后端依赖
+cd backend
 pip install -r requirements.txt
 
-# 4. 配置 API
-cp .env.example .env
-# 编辑 .env，填入你的 API Key
-```
+# 4. 初始化数据库
+alembic upgrade head
+python scripts/init_prompts.py
 
-### 配置 API
+# 5. 启动后端
+uvicorn app.main:app --reload --port 8000
 
-编辑 `.env` 文件：
+# 6. 启动前端
+cd ../frontend
+npm install
+npm run dev
 
-```env
-# HepAI API 配置
-HEPAI_API_KEY=your_api_key_here
-HEPAI_BASE_URL=https://aiapi.ihep.ac.cn/apiv2
-HEPAI_MODEL=hepai/deepseek-r1:671b
-
-# 系统配置
-DAILY_SCHEDULE_TIME=09:00
-CHAPTERS_PER_DAY=2
-DEFAULT_CHAPTER_LENGTH=3000
-```
-
-### 启动 Web 界面
-
-```bash
-python main.py --mode web
-```
-
-访问 `http://localhost:5000` 即可使用全功能创作界面。
-
-### 命令行模式
-
-```bash
-# 检查系统状态
-python main.py --check
-
-# 创建新小说
-python main.py --mode create --genre "悬疑" --style "本格推理"
-
-# 生成新章节
-python main.py --mode generate --chapter 1
-
-# 启动定时调度
-python main.py --mode schedule
+# 7. 访问系统
+# 创作平台: http://localhost:5173
+# API 文档: http://localhost:8000/docs
 ```
 
 ---
 
-## 📁 项目结构
+## 📂 项目结构 | Project Structure
 
 ```
 AI-Novel-MultiAgent/
-├── README.md                          # 本文件
-├── requirements.txt                   # Python 依赖
-├── .gitignore                         # Git 忽略规则
-├── .env.example                       # 环境变量模板
-├── config.yaml                        # 系统配置文件
-├── main.py                            # 主程序入口（CLI + Web）
-├── app.py                             # Web 应用入口
-├── agents/                            # 多智能体模块
-│   ├── __init__.py
-│   ├── agent_factory.py               # 智能体工厂
-│   ├── agent_orchestrator.py          # 智能体编排器
-│   ├── outline_agent.py               # 大纲生成智能体
-│   ├── chapter_planning_agent.py      # 章节规划智能体
-│   ├── content_generation_agent.py    # 内容生成智能体
-│   ├── character_memory_agent.py      # 角色记忆智能体
-│   ├── plot_tracker_agent.py          # 情节追踪智能体
-│   ├── hierarchical_generator.py      # 分层生成器
-│   ├── human_like_generator.py        # 人性化生成器
-│   ├── mystery_agent.py               # 悬疑专项智能体
-│   ├── tomato_novel_agent.py          # 番茄小说专项
-│   ├── integrated_optimization_pipeline.py  # 集成优化管线
-│   └── prompts.py                     # 智能体提示词
-├── prompts/                           # 提示词模板
-├── scheduler/                         # 定时调度模块
-├── qa/                                # 智能问答模块
-├── utils/                             # 工具函数
-├── web/                               # Web 界面
-│   ├── app.py                         # Flask 应用
-│   └── templates/                     # HTML 模板
-├── integrations/                      # 第三方集成
-│   └── feishu.py                      # 飞书文档集成
-├── examples/                          # 示例配置与输出
-├── docs/                              # 文档
-└── data/                              # 数据存储（运行时生成）
-    ├── novels/                        # 小说项目
-    ├── chapters/                      # 章节内容
-    ├── outline.json                   # 大纲数据
-    └── vectordb/                      # 向量数据库
+├── backend/                    # FastAPI 后端
+│   ├── app/
+│   │   ├── main.py            # 应用入口
+│   │   ├── config.py          # 配置
+│   │   ├── api/               # API 路由
+│   │   │   ├── novel.py       # 小说管理
+│   │   │   ├── chapter.py     # 章节管理
+│   │   │   ├── character.py   # 角色管理
+│   │   │   ├── agent.py       # 智能体控制
+│   │   │   └── writing.py     # 写作流程
+│   │   ├── agents/            # 智能体
+│   │   │   ├── base.py        # 智能体基类
+│   │   │   ├── orchestrator.py # 总控智能体
+│   │   │   ├── planner.py     # 策划智能体
+│   │   │   ├── writer.py      # 写作智能体
+│   │   │   ├── editor.py      # 编辑智能体
+│   │   │   ├── character.py   # 角色智能体
+│   │   │   ├── knowledge.py   # 知识智能体
+│   │   │   └── critic.py      # 评论智能体
+│   │   ├── models/            # 数据模型
+│   │   │   ├── novel.py
+│   │   │   ├── chapter.py
+│   │   │   ├── character.py
+│   │   │   └── agent.py
+│   │   ├── services/          # 业务逻辑
+│   │   │   ├── novel_service.py
+│   │   │   ├── writing_service.py
+│   │   │   ├── character_service.py
+│   │   │   └── memory_service.py
+│   │   ├── llm/               # 大模型封装
+│   │   │   ├── base.py        # 基类
+│   │   │   ├── openai.py      # OpenAI
+│   │   │   ├── qwen.py        # 通义千问
+│   │   │   ├── claude.py      # Claude
+│   │   │   └── local.py       # 本地模型
+│   │   ├── memory/            # 记忆系统
+│   │   │   ├── character_memory.py # 角色记忆
+│   │   │   ├── plot_memory.py  # 情节记忆
+│   │   │   ├── style_memory.py # 风格记忆
+│   │   │   └── vector_store.py # 向量存储
+│   │   ├── prompts/           # Prompt 模板
+│   │   │   ├── planner_prompts.py
+│   │   │   ├── writer_prompts.py
+│   │   │   ├── editor_prompts.py
+│   │   │   ├── character_prompts.py
+│   │   │   └── critic_prompts.py
+│   │   └── utils/             # 工具函数
+│   ├── scripts/               # 脚本
+│   │   ├── init_prompts.py
+│   │   └── import_novel.py
+│   ├── alembic/               # 数据库迁移
+│   └── requirements.txt
+├── frontend/                   # Vue 3 前端
+│   ├── src/
+│   │   ├── views/              # 页面
+│   │   │   ├── Dashboard.vue   # 创作总览
+│   │   │   ├── NovelList.vue   # 小说列表
+│   │   │   ├── NovelEditor.vue # 小说编辑器
+│   │   │   ├── ChapterWriter.vue # 章节写作
+│   │   │   ├── CharacterStudio.vue # 角色工作室
+│   │   │   ├── OutlineDesigner.vue # 大纲设计
+│   │   │   └── Settings.vue    # 设置
+│   │   ├── components/         # 组件
+│   │   │   ├── editor/         # 编辑器组件
+│   │   │   │   ├── RichTextEditor.vue
+│   │   │   │   ├── ChapterOutline.vue
+│   │   │   │   └── WritingAssistant.vue
+│   │   │   ├── character/      # 角色组件
+│   │   │   │   ├── CharacterCard.vue
+│   │   │   │   ├── CharacterProfile.vue
+│   │   │   │   └── RelationshipGraph.vue
+│   │   │   ├── agent/          # 智能体组件
+│   │   │   │   ├── AgentStatus.vue
+│   │   │   │   ├── AgentChat.vue
+│   │   │   │   └── WritingProgress.vue
+│   │   │   └── common/
+│   │   ├── api/                # API 调用
+│   │   ├── store/              # Pinia
+│   │   └── router/             # 路由
+│   └── package.json
+├── prompts/                    # Prompt 模板库
+│   ├── styles/                 # 文风模板
+│   │   ├── xianxia.md         # 仙侠风
+│   │   ├── xuanhuan.md        # 玄幻风
+│   │   ├── dushi.md           # 都市风
+│   │   ├── lishi.md           # 历史风
+│   │   └── kehuan.md          # 科幻风
+│   ├── structures/             # 结构模板
+│   │   ├── three_act.md       # 三幕式
+│   │   ├── hero_journey.md    # 英雄之旅
+│   │   └── save_the_cat.md    # 救猫咪
+│   └── characters/             # 角色模板
+│       ├── protagonist.md
+│       ├── antagonist.md
+│       └── mentor.md
+├── examples/                   # 示例小说
+│   ├── sample_novel.json
+│   └── sample_characters.json
+├── docker-compose.yml          # Docker 编排
+├── .env.example                # 环境变量示例
+└── README.md
 ```
 
 ---
 
-## ⚙️ 配置说明
+## 🔬 核心智能体 | Core Agents
 
-### 系统配置 (`config.yaml`)
+### 总控智能体 | Orchestrator Agent
 
-```yaml
-# 调度配置
-scheduler:
-  enabled: true
-  schedule_time: "09:00"       # 每日生成时间
-  chapters_per_day: 2           # 每日生成章节数
+```python
+# agents/orchestrator.py - 总控智能体
+from typing import Dict, List, Optional
+from app.agents.base import BaseAgent
+from app.agents.planner import PlannerAgent
+from app.agents.writer import WriterAgent
+from app.agents.editor import EditorAgent
+from app.agents.character import CharacterAgent
+from app.agents.knowledge import KnowledgeAgent
+from app.agents.critic import CriticAgent
 
-# 章节配置
-chapter:
-  default_length: 3000          # 默认章节字数
-  min_length: 2000
-  max_length: 5000
+class OrchestratorAgent(BaseAgent):
+    """总控智能体: 协调各智能体，管理创作流程"""
+    
+    def __init__(self, llm, memory):
+        super().__init__(llm, memory, role="总控", name="Orchestrator")
+        self.planner = PlannerAgent(llm, memory)
+        self.writer = WriterAgent(llm, memory)
+        self.editor = EditorAgent(llm, memory)
+        self.character = CharacterAgent(llm, memory)
+        self.knowledge = KnowledgeAgent(llm, memory)
+        self.critic = CriticAgent(llm, memory)
+    
+    async def create_novel(self, idea: str, genre: str, style: str) -> Dict:
+        """从零开始创作小说"""
+        self.log("开始小说创作流程")
+        
+        # 1. 策划阶段: 生成大纲和设定
+        self.log("阶段1: 策划 - 生成大纲和设定")
+        plan_result = await self.planner.plan_novel(idea, genre, style)
+        
+        # 2. 角色阶段: 构建主要角色
+        self.log("阶段2: 角色 - 构建主要角色")
+        characters = await self.character.create_characters(
+            plan_result['outline'], 
+            plan_result['world_setting']
+        )
+        
+        # 3. 细化大纲: 逐章规划
+        self.log("阶段3: 细化 - 逐章规划")
+        detailed_outline = await self.planner.create_chapter_outlines(
+            plan_result['outline'],
+            characters
+        )
+        
+        return {
+            'novel_id': self.generate_id(),
+            'idea': idea,
+            'genre': genre,
+            'style': style,
+            'outline': plan_result['outline'],
+            'world_setting': plan_result['world_setting'],
+            'characters': characters,
+            'chapter_outlines': detailed_outline,
+            'status': 'planned'
+        }
+    
+    async def write_chapter(self, novel_id: str, chapter_index: int) -> Dict:
+        """写作单个章节"""
+        self.log(f"开始写作第 {chapter_index + 1} 章")
+        
+        # 1. 获取上下文
+        context = await self.knowledge.get_writing_context(novel_id, chapter_index)
+        
+        # 2. 写作智能体生成初稿
+        self.log("步骤1: 写作智能体生成初稿")
+        draft = await self.writer.write_chapter(
+            context['chapter_outline'],
+            context['characters'],
+            context['previous_chapters'],
+            context['world_setting']
+        )
+        
+        # 3. 角色智能体检核角色一致性
+        self.log("步骤2: 角色智能体检核一致性")
+        character_review = await self.character.review_consistency(
+            draft,
+            context['characters'],
+            context['character_memory']
+        )
+        
+        # 4. 编辑智能体润色
+        self.log("步骤3: 编辑智能体润色")
+        edited = await self.editor.edit_chapter(
+            draft,
+            character_review,
+            context['style_guide']
+        )
+        
+        # 5. 评论智能体评分
+        self.log("步骤4: 评论智能体评分")
+        critique = await self.critic.review_chapter(
+            edited,
+            context['chapter_outline']
+        )
+        
+        # 6. 如果评分不达标，返回修改
+        if critique['score'] < 7.0:
+            self.log(f"评分 {critique['score']} 不达标，返回修改")
+            revised = await self.editor.revise(
+                edited,
+                critique['suggestions']
+            )
+            edited = revised
+            critique = await self.critic.review_chapter(edited, context['chapter_outline'])
+        
+        # 7. 更新记忆
+        await self.memory.update_chapter_memory(novel_id, chapter_index, edited)
+        
+        return {
+            'chapter_index': chapter_index,
+            'content': edited,
+            'word_count': len(edited),
+            'character_review': character_review,
+            'critique': critique,
+            'status': 'completed'
+        }
+    
+    async def batch_write(self, novel_id: str, 
+                          start_chapter: int, 
+                          end_chapter: int) -> List[Dict]:
+        """批量写作多个章节"""
+        results = []
+        for i in range(start_chapter, end_chapter):
+            result = await self.write_chapter(novel_id, i)
+            results.append(result)
+            self.log(f"第 {i+1} 章完成，字数: {result['word_count']}")
+        return results
+```
 
-# 人性化处理
-humanize:
-  enabled: true
-  mode: "high"                  # standard / high / premium
-  max_iterations: 2
+### 写作智能体 | Writer Agent
 
-# Web 服务
-web:
-  host: "0.0.0.0"
-  port: 5000
-  debug: false
+```python
+# agents/writer.py - 写作智能体
+from app.agents.base import BaseAgent
+from app.prompts.writer_prompts import WRITER_PROMPTS
+
+class WriterAgent(BaseAgent):
+    """写作智能体: 负责章节内容创作"""
+    
+    def __init__(self, llm, memory):
+        super().__init__(llm, memory, role="作家", name="Writer")
+    
+    async def write_chapter(self, outline: Dict, characters: List[Dict],
+                            previous_chapters: List[str], 
+                            world_setting: Dict) -> str:
+        """写作章节"""
+        
+        # 1. 构建写作 Prompt
+        prompt = self._build_writing_prompt(
+            outline, characters, previous_chapters, world_setting
+        )
+        
+        # 2. 分场景写作 (每章 3-5 个场景)
+        scenes = outline.get('scenes', [])
+        chapter_content = ""
+        
+        for i, scene in enumerate(scenes):
+            self.log(f"写作场景 {i+1}/{len(scenes)}: {scene.get('title', '')}")
+            
+            scene_prompt = self._build_scene_prompt(
+                scene, characters, chapter_content, world_setting
+            )
+            
+            scene_content = await self.llm.generate(
+                scene_prompt,
+                temperature=0.8,
+                max_tokens=2000
+            )
+            
+            chapter_content += scene_content + "\n\n"
+            
+            # 实时更新上下文记忆
+            await self.memory.add_scene_memory(scene_content)
+        
+        # 3. 章节过渡和收尾
+        if outline.get('ending'):
+            ending_prompt = WRITER_PROMPTS['chapter_ending'].format(
+                chapter_content=chapter_content,
+                ending_hint=outline['ending']
+            )
+            ending = await self.llm.generate(ending_prompt, temperature=0.7)
+            chapter_content += ending
+        
+        return chapter_content.strip()
+    
+    def _build_writing_prompt(self, outline, characters, previous, world):
+        """构建写作 Prompt"""
+        character_desc = self._format_characters(characters)
+        previous_summary = self._summarize_previous(previous)
+        
+        return WRITER_PROMPTS['chapter_writing'].format(
+            chapter_title=outline.get('title', ''),
+            chapter_summary=outline.get('summary', ''),
+            key_events='\n'.join([f"- {e}" for e in outline.get('key_events', [])]),
+            characters=character_desc,
+            previous_summary=previous_summary,
+            world_setting=world.get('description', ''),
+            writing_style=world.get('style', '现实主义'),
+            target_words=outline.get('target_words', 3000)
+        )
+    
+    def _format_characters(self, characters):
+        """格式化角色信息"""
+        result = []
+        for char in characters:
+            result.append(f"""
+【{char['name']}】
+- 身份: {char.get('identity', '')}
+- 性格: {char.get('personality', '')}
+- 外貌: {char.get('appearance', '')}
+- 说话风格: {char.get('speech_style', '')}
+- 当前状态: {char.get('current_state', '')}
+""")
+        return '\n'.join(result)
+```
+
+### 角色智能体 | Character Agent
+
+```python
+# agents/character.py - 角色智能体
+from app.agents.base import BaseAgent
+from app.memory.character_memory import CharacterMemory
+from app.prompts.character_prompts import CHARACTER_PROMPTS
+
+class CharacterAgent(BaseAgent):
+    """角色智能体: 负责角色构建和一致性维护"""
+    
+    def __init__(self, llm, memory):
+        super().__init__(llm, memory, role="角色设计师", name="Character")
+        self.character_memory = CharacterMemory(memory.vector_store)
+    
+    async def create_characters(self, outline: Dict, world_setting: Dict) -> List[Dict]:
+        """根据大纲创建主要角色"""
+        
+        # 1. 分析大纲需要的角色
+        analysis_prompt = CHARACTER_PROMPTS['analyze_needed_characters'].format(
+            outline=outline,
+            world_setting=world_setting
+        )
+        needed_chars = await self.llm.generate(analysis_prompt, temperature=0.7)
+        
+        # 2. 逐个创建角色
+        characters = []
+        for char_type in ['protagonist', 'antagonist', 'mentor', 'ally', 'rival']:
+            char = await self._create_character(char_type, outline, world_setting)
+            if char:
+                characters.append(char)
+                await self.character_memory.save_character(char)
+        
+        return characters
+    
+    async def _create_character(self, char_type: str, outline: Dict, 
+                                 world_setting: Dict) -> Dict:
+        """创建单个角色"""
+        prompt = CHARACTER_PROMPTS[f'create_{char_type}'].format(
+            outline=outline,
+            world_setting=world_setting
+        )
+        
+        char_data = await self.llm.generate(prompt, temperature=0.8)
+        
+        return {
+            'id': self.generate_id(),
+            'type': char_type,
+            'name': char_data.get('name'),
+            'identity': char_data.get('identity'),
+            'age': char_data.get('age'),
+            'gender': char_data.get('gender'),
+            'appearance': char_data.get('appearance'),
+            'personality': char_data.get('personality'),
+            'background': char_data.get('background'),
+            'motivation': char_data.get('motivation'),
+            'speech_style': char_data.get('speech_style'),
+            'abilities': char_data.get('abilities', []),
+            'relationships': char_data.get('relationships', {}),
+            'character_arc': char_data.get('character_arc'),
+            'current_state': '初始状态'
+        }
+    
+    async def review_consistency(self, chapter_content: str, 
+                                  characters: List[Dict],
+                                  character_memory: Dict) -> Dict:
+        """审核章节中角色的一致性"""
+        
+        # 1. 提取章节中角色的言行
+        extraction_prompt = CHARACTER_PROMPTS['extract_character_actions'].format(
+            chapter_content=chapter_content,
+            characters=[c['name'] for c in characters]
+        )
+        actions = await self.llm.generate(extraction_prompt, temperature=0.3)
+        
+        # 2. 对比角色设定
+        issues = []
+        for char_name, char_actions in actions.items():
+            char = next((c for c in characters if c['name'] == char_name), None)
+            if not char:
+                continue
+            
+            # 检查性格一致性
+            personality_issues = self._check_personality(
+                char_actions, char['personality']
+            )
+            issues.extend(personality_issues)
+            
+            # 检查说话风格
+            speech_issues = self._check_speech_style(
+                char_actions.get('dialogues', []),
+                char['speech_style']
+            )
+            issues.extend(speech_issues)
+            
+            # 检查能力边界
+            ability_issues = self._check_abilities(
+                char_actions.get('actions', []),
+                char.get('abilities', [])
+            )
+            issues.extend(ability_issues)
+        
+        # 3. 更新角色记忆
+        await self.character_memory.update_from_chapter(chapter_content)
+        
+        return {
+            'consistent': len(issues) == 0,
+            'issues': issues,
+            'character_development': self._analyze_development(actions, characters),
+            'suggestions': [f"修正: {issue}" for issue in issues[:5]]
+        }
+    
+    def _check_personality(self, actions, personality):
+        """检查性格一致性"""
+        # 对比角色行为与性格设定
+        # 例如: 内向角色不应该在公共场合大声演讲
+        issues = []
+        # ... 具体检查逻辑
+        return issues
+```
+
+### 编辑智能体 | Editor Agent
+
+```python
+# agents/editor.py - 编辑智能体
+from app.agents.base import BaseAgent
+from app.prompts.editor_prompts import EDITOR_PROMPTS
+
+class EditorAgent(BaseAgent):
+    """编辑智能体: 负责内容润色和质量把控"""
+    
+    def __init__(self, llm, memory):
+        super().__init__(llm, memory, role="编辑", name="Editor")
+    
+    async def edit_chapter(self, draft: str, character_review: Dict,
+                           style_guide: Dict) -> str:
+        """编辑润色章节"""
+        
+        edited = draft
+        
+        # 1. 逻辑检查
+        self.log("检查逻辑连贯性")
+        logic_issues = await self._check_logic(edited)
+        if logic_issues:
+            edited = await self._fix_logic(edited, logic_issues)
+        
+        # 2. 节奏调整
+        self.log("调整叙事节奏")
+        edited = await self._adjust_pacing(edited, style_guide)
+        
+        # 3. 文笔润色
+        self.log("润色文笔")
+        edited = await self._polish_prose(edited, style_guide)
+        
+        # 4. 角色问题修正
+        if character_review and not character_review['consistent']:
+            self.log("修正角色一致性问题")
+            edited = await self._fix_character_issues(
+                edited, character_review['issues']
+            )
+        
+        # 5. 对话优化
+        self.log("优化对话")
+        edited = await self._optimize_dialogues(edited)
+        
+        # 6. 描写增强
+        self.log("增强场景描写")
+        edited = await self._enhance_description(edited)
+        
+        return edited
+    
+    async def _check_logic(self, content: str) -> List[Dict]:
+        """检查逻辑问题"""
+        prompt = EDITOR_PROMPTS['logic_check'].format(content=content)
+        result = await self.llm.generate(prompt, temperature=0.2)
+        return result.get('issues', [])
+    
+    async def _polish_prose(self, content: str, style: Dict) -> str:
+        """文笔润色"""
+        prompt = EDITOR_PROMPTS['prose_polish'].format(
+            content=content,
+            style=style.get('name', ''),
+            tone=style.get('tone', ''),
+            vocabulary_level=style.get('vocabulary', '中等')
+        )
+        return await self.llm.generate(prompt, temperature=0.6)
+    
+    async def _adjust_pacing(self, content: str, style: Dict) -> str:
+        """调整叙事节奏"""
+        # 分析当前节奏
+        # 调整段落长度、场景切换、紧张度
+        prompt = EDITOR_PROMPTS['pacing_adjust'].format(
+            content=content,
+            target_pacing=style.get('pacing', '中等')
+        )
+        return await self.llm.generate(prompt, temperature=0.5)
+    
+    async def revise(self, content: str, suggestions: List[str]) -> str:
+        """根据建议修改"""
+        prompt = EDITOR_PROMPTS['revise'].format(
+            content=content,
+            suggestions='\n'.join([f"- {s}" for s in suggestions])
+        )
+        return await self.llm.generate(prompt, temperature=0.7)
 ```
 
 ---
 
-## 🎯 核心功能
+## 📊 创作流程 | Writing Pipeline
 
-### 1. 大纲生成
-- 自主构思模式：AI 独立完成世界观、人物、情节线设计
-- 协作模式：结合用户创意，AI 辅助完善
-- 多轮迭代优化：大纲可反复修改完善
-
-### 2. 章节创作
-- 轻量 DOC 段落提纲：每章 6-8 个段落规划
-- 分层生成：大纲 → 段落提纲 → 正文内容
-- 实时进度显示：生成过程可监控
-
-### 3. 角色一致性
-- 持久化角色记忆库
-- 自动检查角色行为一致性
-- 角色关系图谱维护
-
-### 4. 情节追踪
-- 伏笔自动记录与回收提醒
-- 时间线一致性检查
-- 情节漏洞自动检测
-
-### 5. 智能问答
-- 基于已有内容的语义检索
-- 支持角色名、地名、情节关键词查询
-- 自动关联上下文章节
-
-### 6. 定时调度
-- 每日定时自动生成
-- 可配置生成时间和章节数量
-- 自动备份与版本管理
-
----
-
-## 🔌 第三方集成
-
-### 飞书文档
-自动将生成的章节同步到飞书文档，支持多人协作编辑。
-
-配置 `.env`：
-```env
-FEISHU_APP_ID=your_app_id
-FEISHU_APP_SECRET=your_app_secret
-FEISHU_DOC_TOKEN=your_doc_token
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        第一阶段: 策划 (Planning)                       │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  1. 灵感输入  →  2. 题材分析  →  3. 世界观构建                      │
+│       │              │              │                                │
+│       ▼              ▼              ▼                                │
+│  4. 核心冲突  →  5. 故事大纲  →  6. 角色设定                        │
+│       │              │              │                                │
+│       ▼              ▼              ▼                                │
+│  7. 逐章规划  →  8. 伏笔设计  →  9. 风格确定                        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        第二阶段: 写作 (Writing)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  对每一章执行:                                                       │
+│                                                                     │
+│  1. 上下文获取 (前文回顾、角色状态、伏笔追踪)                         │
+│           │                                                          │
+│           ▼                                                          │
+│  2. 场景分解 (3-5个场景，每场景有明确目标)                            │
+│           │                                                          │
+│           ▼                                                          │
+│  3. 逐场景写作 (开头钩子→发展→高潮→过渡)                             │
+│           │                                                          │
+│           ▼                                                          │
+│  4. 对话生成 (角色智能体确保对话符合人设)                              │
+│           │                                                          │
+│           ▼                                                          │
+│  5. 描写增强 (环境、心理、动作描写)                                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        第三阶段: 审校 (Review)                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  1. 角色一致性检查 → 2. 逻辑连贯性检查 → 3. 叙事节奏检查             │
+│           │                  │                  │                    │
+│           ▼                  ▼                  ▼                    │
+│  4. 文笔润色     → 5. 风格统一检查 → 6. 质量评分                     │
+│           │                  │                  │                    │
+│           └──────────────────┼──────────────────┘                    │
+│                              ▼                                        │
+│                    7. 评分 ≥ 7.0? ──Yes──→ 完成                      │
+│                              │ No                                      │
+│                              ▼                                        │
+│                    8. 根据建议修改 → 返回步骤1                        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 质量监控
+## 🎯 应用场景 | Use Cases
 
-系统内置多维度质量评估：
-
-| 维度 | 指标 | 说明 |
-|------|------|------|
-| 流畅度 | 句长变异系数 | 避免句式单调 |
-| 多样性 | TTR 词汇多样性 | 避免用词重复 |
-| 一致性 | 角色行为匹配度 | 角色不 OOC |
-| 连贯性 | 情节衔接评分 | 章节间过渡自然 |
-| 原创性 | AI 感检测 | 越低越好 |
-
----
-
-## 🎯 适用场景
-
-- ✅ **网络小说创作** — 日更万字，稳定输出
-- ✅ **剧本大纲设计** — 影视剧、游戏剧本
-- ✅ **同人创作** — 基于已有 IP 的二次创作
-- ✅ **写作辅助** — 人类作者的 AI 协作工具
-- ✅ **内容生产** — 自媒体、公众号批量内容
+- 📖 **网文创作**：网络小说作者的AI写作助手
+- 🎬 **剧本创作**：影视剧、短视频剧本创作
+- 🎮 **游戏剧情**：游戏剧情和对话生成
+- 📚 **内容创作**：自媒体故事、公众号文章创作
+- 🎓 **写作教学**：创意写作课程教学辅助
+- 🧪 **AI 研究**：多智能体协作、LLM 应用研究
+- 💡 **灵感激发**：创作者的灵感来源和头脑风暴
+- 🏢 **内容生产**：媒体机构的内容生产工具
 
 ---
 
-## ⚠️ 注意事项
+## 📚 参考文献 | References
 
-- API Key 请妥善保管，不要提交到公开仓库
-- 生成内容需遵守平台规范和法律法规
-- 建议定期备份 `data/` 目录
-- 大模型生成内容可能存在幻觉，重要情节建议人工审核
-
----
-
-## 📄 许可证
-
-MIT License — 可自由使用、修改和分发。
+- Brown, T., et al. "Language Models are Few-Shot Learners." NeurIPS 2020.
+- "The Anatomy of Story" by John Truby. 2007.
+- "Save the Cat! Writes a Novel" by Jessica Brody. 2018.
+- "Characters and Viewpoint" by Orson Scott Card. 1988.
+- Park, J., et al. "Generative Agents: Interactive Simulacra of Human Behavior." UIST 2023.
+- "Writing Fiction: A Guide to Narrative Craft" by Janet Burroway. 2010.
 
 ---
 
-## 🤝 引用
+## 📄 License
 
-```bibtex
-@misc{novel-multi-agent2025,
-  title={AI Novel Multi-Agent Creation System},
-  author={Windyhhh},
-  year={2025},
-  howpublished={\url{https://github.com/Windyhhh/AI-Novel-MultiAgent}}
-}
-```
+MIT License — 自由使用、修改和分发。
 
 ---
 
-<div align="center">
-
-**📚 让 AI 成为你的创作搭档，写出有灵魂的故事 📚**
-
-[报告问题](https://github.com/Windyhhh/AI-Novel-MultiAgent/issues) · [提出建议](https://github.com/Windyhhh/AI-Novel-MultiAgent/issues)
-
-</div>
+> 💡 **多智能体协作的 AI 小说创作系统，Star ⭐ 开启你的 AI 写作之旅！**
