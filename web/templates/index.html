@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 小说生成系统{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>🎯 快速开始</h3>
+    <p>选择您的创作方式开始AI小说创作之旅</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+        <a href="/agents" style="text-decoration: none; color: inherit;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; transition: transform 0.2s; cursor: pointer;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">🤖</div>
+                <div><strong>选择AI智能体</strong></div>
+                <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">选择专业类型智能体</div>
+            </div>
+        </a>
+        <div onclick="createOutline()" style="background: linear-gradient(135deg, #51cf66 0%, #40c057 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; transition: transform 0.2s; cursor: pointer;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+            <div><strong>快速创建大纲</strong></div>
+            <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">使用通用模式创建</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📖 小说大纲</h3>
+    <div id="outline-info">
+        <p>加载中...</p>
+    </div>
+    <button class="btn" onclick="createOutline()">创建新大纲</button>
+</div>
+
+<div class="card">
+    <h3>📝 生成进度</h3>
+    <div id="progress-info">
+        <p>加载中...</p>
+    </div>
+    <button class="btn" onclick="generateChapter()">生成下一章</button>
+    <button class="btn" onclick="triggerDaily()">手动触发每日任务</button>
+</div>
+
+<div class="card">
+    <h3>🔄 飞书反馈处理</h3>
+    <p>从飞书文档读取反馈并自动优化章节内容</p>
+    <button class="btn" onclick="processFeedback()">处理飞书反馈</button>
+</div>
+
+<div class="card">
+    <h3>🔍 快速问答</h3>
+    <input type="text" id="quick-question" placeholder="输入问题，例如：主角是谁？">
+    <button class="btn" onclick="quickQuery()">提问</button>
+    <div id="quick-answer" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 5px; display: none;">
+        <strong>回答：</strong>
+        <p id="answer-text"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 加载大纲信息
+    async function loadOutline() {
+        const result = await apiCall('/api/outline');
+        const outlineDiv = document.getElementById('outline-info');
+        
+        if (result.success) {
+            const outline = result.data;
+            outlineDiv.innerHTML = `
+                <p><strong>标题：</strong>${outline.novel_title || 'N/A'}</p>
+                <p><strong>题材：</strong>${outline.genre || 'N/A'}</p>
+                <p><strong>主题：</strong>${outline.theme || 'N/A'}</p>
+                <p><strong>计划章节数：</strong>${outline.chapter_outline ? outline.chapter_outline.length : 0}</p>
+            `;
+        } else {
+            outlineDiv.innerHTML = '<p>暂无大纲，请创建新大纲</p>';
+        }
+    }
+    
+    // 加载进度信息
+    async function loadProgress() {
+        const result = await apiCall('/api/chapters');
+        const progressDiv = document.getElementById('progress-info');
+        
+        if (result.success) {
+            const chapters = result.data;
+            progressDiv.innerHTML = `
+                <p><strong>已生成章节：</strong>${chapters.length} 章</p>
+                <p><strong>总字数：</strong>${chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0)} 字</p>
+            `;
+        } else {
+            progressDiv.innerHTML = '<p>暂无章节</p>';
+        }
+    }
+    
+    // 创建大纲
+    async function createOutline() {
+        if (!confirm('确定要创建新大纲吗？这将覆盖现有大纲。')) return;
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 创建中...';
+        
+        const result = await apiCall('/api/outline', 'POST', {mode: 'autonomous'});
+        
+        btn.disabled = false;
+        btn.textContent = '创建新大纲';
+        
+        if (result.success) {
+            showAlert('大纲创建成功！', 'success');
+            loadOutline();
+        } else {
+            showAlert('大纲创建失败：' + result.message, 'error');
+        }
+    }
+    
+    // 生成章节
+    async function generateChapter() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 生成中...';
+        
+        const result = await apiCall('/api/chapters/generate', 'POST');
+        
+        btn.disabled = false;
+        btn.textContent = '生成下一章';
+        
+        if (result.success) {
+            showAlert('章节生成成功！', 'success');
+            loadProgress();
+        } else {
+            showAlert('章节生成失败：' + result.message, 'error');
+        }
+    }
+    
+    // 触发每日任务
+    async function triggerDaily() {
+        if (!confirm('确定要手动触发每日生成任务吗？')) return;
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 执行中...';
+        
+        const result = await apiCall('/api/scheduler/trigger', 'POST');
+        
+        btn.disabled = false;
+        btn.textContent = '手动触发每日任务';
+        
+        if (result.success) {
+            showAlert('每日任务已启动，请稍后查看进度', 'success');
+        } else {
+            showAlert('任务启动失败：' + result.message, 'error');
+        }
+    }
+    
+    // 处理飞书反馈
+    async function processFeedback() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 处理中...';
+        
+        const result = await apiCall('/api/feedback/process', 'POST');
+        
+        btn.disabled = false;
+        btn.textContent = '处理飞书反馈';
+        
+        if (result.success) {
+            showAlert('反馈处理已启动', 'success');
+        } else {
+            showAlert('处理失败：' + result.message, 'error');
+        }
+    }
+    
+    // 快速问答
+    async function quickQuery() {
+        const question = document.getElementById('quick-question').value;
+        if (!question) {
+            showAlert('请输入问题', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        
+        const result = await apiCall('/api/qa/query', 'POST', {question: question});
+        
+        btn.disabled = false;
+        btn.textContent = '提问';
+        
+        if (result.success) {
+            document.getElementById('answer-text').textContent = result.answer;
+            document.getElementById('quick-answer').style.display = 'block';
+        } else {
+            showAlert('查询失败：' + result.message, 'error');
+        }
+    }
+    
+    // 页面加载时执行
+    window.onload = function() {
+        loadOutline();
+        loadProgress();
+    };
+</script>
+{% endblock %}
