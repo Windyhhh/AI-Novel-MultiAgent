@@ -1,0 +1,77 @@
+# 小说生成系统配置文件
+
+# 调度配置
+scheduler:
+  enabled: true
+  schedule_time: "09:00"  # 每日生成时间
+  chapters_per_day: 2      # 每日生成章节数
+
+# 章节配置
+chapter:
+  default_length: 3000     # 默认章节字数
+  min_length: 2000         # 最小章节字数
+  max_length: 5000         # 最大章节字数
+
+# 创作模式配置
+creation_mode:
+  mode: "autonomous"       # autonomous(自主构思) 或 customized(定制化)
+  custom_settings:
+    genre: ""              # 题材
+    style: ""              # 风格
+    core_settings: ""      # 核心设定
+
+# 人性化与质量优化配置
+humanize:
+  enabled: true             # 是否启用人性化后处理
+  mode: "high"             # standard / high / premium
+  targets:
+    overall_score: 85.0     # 目标总体质量分
+    human_score: 80.0       # 目标人类感分
+    ai_score: 20.0          # 目标AI感上限（越低越好）
+    burstiness: 0.5         # 目标句长变异系数
+    lexical_diversity: 0.6  # 目标TTR
+  max_iterations: 2         # 最多迭代轮数（standard=1, high=2, premium=3）
+
+# 采样策略预设（参考Kobold/NovelAI）
+sampling:
+  presets:
+    default:
+      temperature: 0.8
+      top_p: 0.9
+      presence_penalty: 0.3
+      frequency_penalty: 0.2
+    action:
+      temperature: 0.9
+      top_p: 0.85
+      presence_penalty: 0.4
+      frequency_penalty: 0.4
+    dialogue:
+      temperature: 0.7
+      top_p: 0.9
+      presence_penalty: 0.2
+      frequency_penalty: 0.3
+    description:
+      temperature: 0.8
+      top_p: 0.95
+      presence_penalty: 0.1
+      frequency_penalty: 0.1
+
+# 轻量DOC段落生成
+generation:
+  doc_light: true           # 是否启用轻量段落提纲生成
+  paragraphs_min: 6
+  paragraphs_max: 8
+
+# 数据存储配置
+storage:
+  novel_dir: "data/novels"
+  outline_file: "data/outline.json"
+  chapters_dir: "data/chapters"
+  vector_db_dir: "data/vectordb"
+
+# Web服务配置
+web:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+
