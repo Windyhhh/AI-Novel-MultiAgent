@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}一条龙优化系统 - 小说生成系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .optimize-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .chapter-list {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    
+    .chapter-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 5px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    
+    .chapter-item:hover {
+        background: #e9ecef;
+    }
+    
+    .chapter-item input[type="checkbox"] {
+        width: auto;
+        margin-right: 10px;
+    }
+    
+    .chapter-item.selected {
+        background: #e7f3ff;
+        border-left: 3px solid #667eea;
+    }
+    
+    .optimization-steps {
+        display: flex;
+        justify-content: space-between;
+        margin: 30px 0;
+        position: relative;
+    }
+    
+    .optimization-steps::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: #dee2e6;
+        z-index: 0;
+    }
+    
+    .step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #dee2e6;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .step.active .step-circle {
+        background: #667eea;
+        transform: scale(1.2);
+    }
+    
+    .step.completed .step-circle {
+        background: #28a745;
+    }
+    
+    .step-label {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .results-container {
+        margin-top: 30px;
+    }
+    
+    .result-item {
+        padding: 15px;
+        border-left: 4px solid #667eea;
+        background: #f8f9fa;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    
+    .result-item.success {
+        border-left-color: #28a745;
+        background: #d4edda;
+    }
+    
+    .result-item.skipped {
+        border-left-color: #ffc107;
+        background: #fff3cd;
+    }
+    
+    .result-item.failed {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+    }
+    
+    .quality-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 0 5px;
+    }
+    
+    .quality-improvement {
+        color: #28a745;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 20px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>🚀 一条龙智能体协作优化系统</h2>
+<p style="color: #6c757d; margin-bottom: 30px;">
+    智能体协同优化：质量分析 → 高级优化 → 人性化 → 风格优化 → 质量复评
+</p>
+
+<div class="optimize-container">
+    <div class="card">
+        <h3>选择优化章节</h3>
+        <div style="margin-bottom: 15px;">
+            <button class="btn" onclick="selectAllChapters()">全选</button>
+            <button class="btn" onclick="deselectAllChapters()" style="margin-left: 10px;">取消全选</button>
+        </div>
+        <div class="chapter-list" id="chapterList">
+            <p style="text-align: center; color: #6c757d;">加载中...</p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>优化选项</h3>
+        <label>
+            <input type="radio" name="optimizeMode" value="batch" checked> 
+            批量优化所选章节
+        </label>
+        <br>
+        <label>
+            <input type="radio" name="optimizeMode" value="single"> 
+            优化单个章节（查看详细步骤）
+        </label>
+        
+        <div style="margin-top: 20px;">
+            <h4>优化流程（5步）</h4>
+            <ol style="color: #6c757d; font-size: 14px; line-height: 2;">
+                <li>📊 质量分析</li>
+                <li>⚙️ 高级内容优化</li>
+                <li>✨ 人性化处理</li>
+                <li>🎨 风格优化</li>
+                <li>✅ 质量复评</li>
+            </ol>
+        </div>
+        
+        <button class="btn" onclick="startOptimization()" style="width: 100%; margin-top: 20px;" id="optimizeBtn">
+            开始优化
+        </button>
+    </div>
+</div>
+
+<div class="optimization-steps" id="optimizationSteps" style="display: none;">
+    <div class="step" id="step1">
+        <div class="step-circle">1</div>
+        <div class="step-label">质量分析</div>
+    </div>
+    <div class="step" id="step2">
+        <div class="step-circle">2</div>
+        <div class="step-label">高级优化</div>
+    </div>
+    <div class="step" id="step3">
+        <div class="step-circle">3</div>
+        <div class="step-label">人性化</div>
+    </div>
+    <div class="step" id="step4">
+        <div class="step-circle">4</div>
+        <div class="step-label">风格优化</div>
+    </div>
+    <div class="step" id="step5">
+        <div class="step-circle">5</div>
+        <div class="step-label">质量复评</div>
+    </div>
+</div>
+
+<div class="progress-bar" id="progressBar" style="display: none;">
+    <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+</div>
+
+<div class="stats-grid" id="statsGrid" style="display: none;">
+    <div class="stat-card">
+        <div class="stat-number" id="statTotal">0</div>
+        <div class="stat-label">总章节数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="statOptimized">0</div>
+        <div class="stat-label">已优化</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="statSkipped">0</div>
+        <div class="stat-label">已跳过</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="statFailed">0</div>
+        <div class="stat-label">失败</div>
+    </div>
+</div>
+
+<div class="results-container" id="resultsContainer">
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let chapters = [];
+let selectedChapters = [];
+
+// 加载章节列表
+async function loadChapters() {
+    try {
+        const response = await apiCall('/api/chapters');
+        if (response.success) {
+            chapters = response.data;
+            displayChapters();
+        } else {
+            showAlert('加载章节失败: ' + response.message, 'error');
+        }
+    } catch (error) {
+        showAlert('加载章节失败: ' + error.message, 'error');
+    }
+}
+
+// 显示章节列表
+function displayChapters() {
+    const listEl = document.getElementById('chapterList');
+    
+    if (chapters.length === 0) {
+        listEl.innerHTML = '<p style="text-align: center; color: #6c757d;">暂无章节</p>';
+        return;
+    }
+    
+    listEl.innerHTML = chapters.map(chapter => {
+        const chapterNum = chapter.chapter_number || chapters.indexOf(chapter) + 1;
+        const title = chapter.title || `第${chapterNum}章`;
+        const wordCount = chapter.word_count || 0;
+        
+        return `
+            <div class="chapter-item" onclick="toggleChapter(${chapterNum})">
+                <input type="checkbox" id="chapter_${chapterNum}" 
+                       onchange="updateSelectedChapters()">
+                <div>
+                    <strong>${title}</strong>
+                    <span style="color: #6c757d; margin-left: 10px;">${wordCount}字</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 切换章节选择
+function toggleChapter(chapterNum) {
+    const checkbox = document.getElementById(`chapter_${chapterNum}`);
+    checkbox.checked = !checkbox.checked;
+    updateSelectedChapters();
+}
+
+// 更新选中章节列表
+function updateSelectedChapters() {
+    selectedChapters = [];
+    chapters.forEach(chapter => {
+        const chapterNum = chapter.chapter_number || chapters.indexOf(chapter) + 1;
+        const checkbox = document.getElementById(`chapter_${chapterNum}`);
+        if (checkbox && checkbox.checked) {
+            selectedChapters.push(chapterNum);
+        }
+    });
+}
+
+// 全选
+function selectAllChapters() {
+    chapters.forEach(chapter => {
+        const chapterNum = chapter.chapter_number || chapters.indexOf(chapter) + 1;
+        const checkbox = document.getElementById(`chapter_${chapterNum}`);
+        if (checkbox) checkbox.checked = true;
+    });
+    updateSelectedChapters();
+}
+
+// 取消全选
+function deselectAllChapters() {
+    chapters.forEach(chapter => {
+        const chapterNum = chapter.chapter_number || chapters.indexOf(chapter) + 1;
+        const checkbox = document.getElementById(`chapter_${chapterNum}`);
+        if (checkbox) checkbox.checked = false;
+    });
+    updateSelectedChapters();
+}
+
+// 开始优化
+async function startOptimization() {
+    if (selectedChapters.length === 0) {
+        showAlert('请至少选择一个章节', 'error');
+        return;
+    }
+    
+    const mode = document.querySelector('input[name="optimizeMode"]:checked').value;
+    const optimizeBtn = document.getElementById('optimizeBtn');
+    
+    optimizeBtn.disabled = true;
+    optimizeBtn.innerHTML = '<span class="loading"></span> 优化中...';
+    
+    // 显示进度条
+    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('statsGrid').style.display = 'none';
+    document.getElementById('resultsContainer').innerHTML = '';
+    
+    if (mode === 'single' && selectedChapters.length === 1) {
+        await optimizeSingleChapter(selectedChapters[0]);
+    } else {
+        await optimizeBatchChapters(selectedChapters);
+    }
+    
+    optimizeBtn.disabled = false;
+    optimizeBtn.innerHTML = '开始优化';
+}
+
+// 批量优化
+async function optimizeBatchChapters(chapterNumbers) {
+    try {
+        const response = await apiCall('/api/optimize/pipeline', 'POST', {
+            chapter_numbers: chapterNumbers
+        });
+        
+        if (response.success) {
+            const data = response.data;
+            
+            // 显示统计
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('statTotal').textContent = data.total_chapters;
+            document.getElementById('statOptimized').textContent = data.optimized_count;
+            document.getElementById('statSkipped').textContent = data.skipped_count;
+            document.getElementById('statFailed').textContent = data.failed_count;
+            
+            // 显示详细结果
+            displayResults(data.results);
+            
+            // 更新进度条
+            const progress = 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressFill').textContent = progress + '%';
+            
+            showAlert(`优化完成！成功: ${data.optimized_count}, 跳过: ${data.skipped_count}, 失败: ${data.failed_count}`, 'success');
+        } else {
+            showAlert('优化失败: ' + response.message, 'error');
+        }
+    } catch (error) {
+        showAlert('优化失败: ' + error.message, 'error');
+    }
+    
+    document.getElementById('progressBar').style.display = 'none';
+}
+
+// 单章节优化（显示详细步骤）
+async function optimizeSingleChapter(chapterNumber) {
+    document.getElementById('optimizationSteps').style.display = 'flex';
+    
+    try {
+        // 模拟步骤进度
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`step${i}`).classList.add('active');
+            document.getElementById('progressFill').style.width = (i * 20) + '%';
+            document.getElementById('progressFill').textContent = (i * 20) + '%';
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        const response = await apiCall('/api/optimize/single', 'POST', {
+            chapter_number: chapterNumber
+        });
+        
+        if (response.success) {
+            const data = response.data;
+            
+            // 标记所有步骤完成
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`step${i}`).classList.remove('active');
+                document.getElementById(`step${i}`).classList.add('completed');
+            }
+            
+            // 显示结果
+            if (data.skipped) {
+                showAlert(`第${chapterNumber}章质量已达标（${data.quality_score.toFixed(1)}/10），无需优化`, 'success');
+            } else {
+                showAlert(`第${chapterNumber}章优化成功！质量提升: ${data.improvement.toFixed(1)}分`, 'success');
+                displaySingleResult(data);
+            }
+            
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('progressFill').textContent = '完成';
+        } else {
+            showAlert('优化失败: ' + response.message, 'error');
+        }
+    } catch (error) {
+        showAlert('优化失败: ' + error.message, 'error');
+    }
+    
+    setTimeout(() => {
+        document.getElementById('optimizationSteps').style.display = 'none';
+        document.getElementById('progressBar').style.display = 'none';
+        // 重置步骤状态
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`step${i}`).classList.remove('active', 'completed');
+        }
+    }, 3000);
+}
+
+// 显示批量结果
+function displayResults(results) {
+    const container = document.getElementById('resultsContainer');
+    
+    container.innerHTML = '<h3>优化结果</h3>' + results.map(result => {
+        let statusClass = result.status;
+        let statusText = result.status === 'success' ? '✅ 成功' : 
+                        result.status === 'skipped' ? '⏭️ 跳过' : '❌ 失败';
+        
+        let content = `<strong>第${result.chapter}章</strong> - ${statusText}`;
+        
+        if (result.status === 'success') {
+            content += `<br>
+                <span class="quality-badge" style="background: #ffc107;">优化前: ${result.quality_before.toFixed(1)}</span>
+                <span class="quality-badge" style="background: #28a745;">优化后: ${result.quality_after.toFixed(1)}</span>
+                <span class="quality-improvement">↑ +${result.improvement.toFixed(1)}分</span>`;
+            
+            if (result.improvements && result.improvements.length > 0) {
+                content += `<br><small style="color: #6c757d;">改进: ${result.improvements.join(', ')}</small>`;
+            }
+        } else if (result.status === 'skipped') {
+            content += `<br><small style="color: #6c757d;">${result.reason}</small>`;
+        } else if (result.status === 'failed') {
+            content += `<br><small style="color: #dc3545;">${result.error}</small>`;
+        }
+        
+        return `<div class="result-item ${statusClass}">${content}</div>`;
+    }).join('');
+}
+
+// 显示单章节结果
+function displaySingleResult(data) {
+    const container = document.getElementById('resultsContainer');
+    
+    container.innerHTML = `
+        <div class="card">
+            <h3>优化详情 - 第${data.chapter_number}章</h3>
+            <p>
+                <span class="quality-badge" style="background: #ffc107;">优化前: ${data.quality_before.toFixed(1)}</span>
+                <span class="quality-badge" style="background: #28a745;">优化后: ${data.quality_after.toFixed(1)}</span>
+                <span class="quality-improvement">↑ 提升 ${data.improvement.toFixed(1)}分</span>
+            </p>
+            ${data.improvements && data.improvements.length > 0 ? 
+                `<p><strong>改进项目：</strong>${data.improvements.join(', ')}</p>` : ''}
+            
+            <h4 style="margin-top: 20px;">优化步骤</h4>
+            ${data.steps.map(step => `
+                <div style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 5px;">
+                    <strong>步骤${step.step}: ${step.name}</strong> - 
+                    <span style="color: ${step.status === 'completed' ? '#28a745' : '#6c757d'};">
+                        ${step.status === 'completed' ? '✅' : '⏭️'} ${step.result}
+                    </span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// 页面加载时初始化
+window.addEventListener('DOMContentLoaded', () => {
+    loadChapters();
+});
+</script>
+{% endblock %}
