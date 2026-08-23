@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}系统设置 - 小说生成系统{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>⚙️ 调度器设置</h3>
+    <div id="scheduler-status"></div>
+    <label>每日生成时间：</label>
+    <input type="time" id="schedule-time" value="09:00">
+    
+    <label>每日生成章节数：</label>
+    <input type="number" id="chapters-per-day" min="1" max="5" value="2">
+    
+    <button class="btn" onclick="updateScheduler()">保存设置</button>
+</div>
+
+<div class="card">
+    <h3>📝 章节设置</h3>
+    <label>默认章节字数：</label>
+    <input type="number" id="default-length" min="1000" max="10000" step="100" value="3000">
+    
+    <label>最小章节字数：</label>
+    <input type="number" id="min-length" min="500" max="5000" step="100" value="2000">
+    
+    <label>最大章节字数：</label>
+    <input type="number" id="max-length" min="2000" max="20000" step="100" value="5000">
+    
+    <button class="btn" onclick="updateChapterSettings()">保存设置</button>
+</div>
+
+<div class="card">
+    <h3>🎨 创作模式</h3>
+    <label>模式选择：</label>
+    <select id="creation-mode">
+        <option value="autonomous">自主构思模式</option>
+        <option value="customized">定制化模式</option>
+    </select>
+    
+    <div id="custom-settings" style="display: none; margin-top: 15px;">
+        <label>题材：</label>
+        <input type="text" id="genre" placeholder="例如：科幻、玄幻、都市">
+        
+        <label>风格：</label>
+        <input type="text" id="style" placeholder="例如：轻松幽默、严肃深刻">
+        
+        <label>核心设定：</label>
+        <textarea id="core-settings" placeholder="描述您想要的核心设定"></textarea>
+    </div>
+    
+    <button class="btn" onclick="updateCreationMode()">保存设置</button>
+</div>
+
+<div class="card">
+    <h3>📊 系统信息</h3>
+    <div id="system-info">
+        <p>加载中...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 加载配置
+    async function loadConfig() {
+        const result = await apiCall('/api/config');
+        
+        if (result.success) {
+            const config = result.data;
+            
+            // 调度器设置
+            document.getElementById('schedule-time').value = config.scheduler.schedule_time;
+            document.getElementById('chapters-per-day').value = config.scheduler.chapters_per_day;
+            
+            // 章节设置
+            document.getElementById('default-length').value = config.chapter.default_length;
+            document.getElementById('min-length').value = config.chapter.min_length;
+            document.getElementById('max-length').value = config.chapter.max_length;
+            
+            // 创作模式
+            document.getElementById('creation-mode').value = config.creation_mode.mode;
+            toggleCustomSettings();
+        }
+        
+        // 加载调度器状态
+        const statusResult = await apiCall('/api/scheduler/status');
+        if (statusResult.success) {
+            const status = statusResult.data;
+            document.getElementById('scheduler-status').innerHTML = `
+                <p><strong>状态：</strong>${status.running ? '运行中 🟢' : '已停止 🔴'}</p>
+                <p><strong>当前设置：</strong>每日 ${status.schedule_time} 生成 ${status.chapters_per_day} 章</p>
+            `;
+        }
+        
+        // 加载系统信息
+        const chaptersResult = await apiCall('/api/chapters');
+        const outlineResult = await apiCall('/api/outline');
+        
+        let info = '<ul style="list-style: none; padding: 0;">';
+        info += `<li>✓ 大纲状态：${outlineResult.success ? '已创建' : '未创建'}</li>`;
+        if (chaptersResult.success) {
+            info += `<li>✓ 已生成章节：${chaptersResult.data.length} 章</li>`;
+            const totalWords = chaptersResult.data.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+            info += `<li>✓ 总字数：${totalWords} 字</li>`;
+        }
+        info += '</ul>';
+        document.getElementById('system-info').innerHTML = info;
+    }
+    
+    // 更新调度器设置
+    async function updateScheduler() {
+        const scheduleTime = document.getElementById('schedule-time').value;
+        const chaptersPerDay = parseInt(document.getElementById('chapters-per-day').value);
+        
+        const result = await apiCall('/api/scheduler/update', 'POST', {
+            schedule_time: scheduleTime,
+            chapters_per_day: chaptersPerDay
+        });
+        
+        if (result.success) {
+            showAlert('调度器设置已更新', 'success');
+            loadConfig();
+        } else {
+            showAlert('更新失败：' + result.message, 'error');
+        }
+    }
+    
+    // 更新章节设置
+    async function updateChapterSettings() {
+        const defaultLength = parseInt(document.getElementById('default-length').value);
+        const minLength = parseInt(document.getElementById('min-length').value);
+        const maxLength = parseInt(document.getElementById('max-length').value);
+        
+        const result = await apiCall('/api/config', 'POST', {
+            'chapter.default_length': defaultLength,
+            'chapter.min_length': minLength,
+            'chapter.max_length': maxLength
+        });
+        
+        if (result.success) {
+            showAlert('章节设置已更新', 'success');
+        } else {
+            showAlert('更新失败：' + result.message, 'error');
+        }
+    }
+    
+    // 更新创作模式
+    async function updateCreationMode() {
+        const mode = document.getElementById('creation-mode').value;
+        const data = {'creation_mode.mode': mode};
+        
+        if (mode === 'customized') {
+            data['creation_mode.custom_settings.genre'] = document.getElementById('genre').value;
+            data['creation_mode.custom_settings.style'] = document.getElementById('style').value;
+            data['creation_mode.custom_settings.core_settings'] = document.getElementById('core-settings').value;
+        }
+        
+        const result = await apiCall('/api/config', 'POST', data);
+        
+        if (result.success) {
+            showAlert('创作模式已更新', 'success');
+        } else {
+            showAlert('更新失败：' + result.message, 'error');
+        }
+    }
+    
+    // 切换定制化设置显示
+    function toggleCustomSettings() {
+        const mode = document.getElementById('creation-mode').value;
+        document.getElementById('custom-settings').style.display = 
+            mode === 'customized' ? 'block' : 'none';
+    }
+    
+    document.getElementById('creation-mode').addEventListener('change', toggleCustomSettings);
+    
+    // 页面加载时执行
+    window.onload = function() {
+        loadConfig();
+    };
+</script>
+{% endblock %}
+
