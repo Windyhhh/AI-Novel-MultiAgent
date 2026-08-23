@@ -1,0 +1,1100 @@
+{% extends "base.html" %}
+
+{% block title %}高级功能 - AI小说生成系统{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>🚀 智能推荐系统</h3>
+    <p>根据您的需求智能推荐最适合的创作方案</p>
+    
+    <div class="form-group">
+        <label>小说类型：</label>
+        <select id="genre-select" class="form-control">
+            <option value="mystery">悬疑推理</option>
+            <option value="romance">言情恋爱</option>
+            <option value="fantasy">玄幻奇幻</option>
+            <option value="scifi">科幻未来</option>
+            <option value="historical">历史古代</option>
+            <option value="urban">都市现代</option>
+            <option value="general">其他</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>经验水平：</label>
+        <select id="experience-select" class="form-control">
+            <option value="beginner">初次使用</option>
+            <option value="intermediate">有一些经验</option>
+            <option value="expert">经验丰富</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>质量要求：</label>
+        <select id="quality-select" class="form-control">
+            <option value="standard">标准质量</option>
+            <option value="enhanced">高质量</option>
+            <option value="premium">精品级</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>特殊需求（可选）：</label>
+        <input type="text" id="special-needs" class="form-control" placeholder="如：重视对话、多媒体、平台优化等">
+    </div>
+    
+    <button class="btn" onclick="getRecommendations()">获取智能推荐</button>
+    
+    <div id="recommendations-result" class="result-panel" style="display: none;">
+        <h4>🎯 智能推荐结果</h4>
+        <div id="recommendations-content"></div>
+        <button class="btn btn-primary" onclick="executeWorkflow()" style="display: none;" id="execute-btn">执行推荐工作流</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🧠 Self-RAG 自我反思生成</h3>
+    <p>使用先进的Self-RAG技术生成高质量内容</p>
+    
+    <div class="form-group">
+        <label>生成内容描述：</label>
+        <textarea id="self-rag-prompt" class="form-control" rows="3" placeholder="请描述您想要生成的内容，如：为第5章生成高质量小说内容"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>章节编号（可选）：</label>
+        <input type="number" id="self-rag-chapter" class="form-control" placeholder="如：5">
+    </div>
+    
+    <button class="btn" onclick="generateSelfRAG()">Self-RAG 生成</button>
+    
+    <div id="self-rag-result" class="result-panel" style="display: none;">
+        <h4>✨ Self-RAG 生成结果</h4>
+        <div id="self-rag-content"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🎨 多模态创作</h3>
+    <p>支持文本+图像+音频的综合创作</p>
+    
+    <div class="form-group">
+        <label>章节标题：</label>
+        <input type="text" id="multimodal-title" class="form-control" placeholder="如：第1章">
+    </div>
+    
+    <div class="form-group">
+        <label>多模态元素：</label>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="include-images" checked> 包含图像描述</label>
+            <label><input type="checkbox" id="include-audio" checked> 包含音频元素</label>
+            <label><input type="checkbox" id="include-visualization"> 包含场景可视化</label>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label>创作风格：</label>
+        <select id="multimodal-style" class="form-control">
+            <option value="realistic">写实风格</option>
+            <option value="fantasy">奇幻风格</option>
+            <option value="noir">黑色风格</option>
+            <option value="romantic">浪漫风格</option>
+            <option value="thriller">惊悚风格</option>
+        </select>
+    </div>
+    
+    <button class="btn" onclick="generateMultimodal()">多模态生成</button>
+    
+    <div id="multimodal-result" class="result-panel" style="display: none;">
+        <h4>🎨 多模态创作结果</h4>
+        <div id="multimodal-content"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>💬 智能对话系统</h3>
+    <p>生成自然流畅的角色对话</p>
+    
+    <div class="form-group">
+        <label>说话角色：</label>
+        <input type="text" id="character-name" class="form-control" placeholder="角色名称">
+    </div>
+    
+    <div class="form-group">
+        <label>对话目标角色（可选）：</label>
+        <input type="text" id="target-character" class="form-control" placeholder="目标角色名称">
+    </div>
+    
+    <div class="form-group">
+        <label>场景描述：</label>
+        <textarea id="dialogue-scene" class="form-control" rows="2" placeholder="描述对话发生的场景和情境"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>地点：</label>
+        <input type="text" id="dialogue-location" class="form-control" placeholder="对话发生的地点">
+    </div>
+    
+    <div class="form-group">
+        <label>整体氛围：</label>
+        <input type="text" id="dialogue-mood" class="form-control" placeholder="如：紧张、轻松、悲伤等">
+    </div>
+    
+    <button class="btn" onclick="generateDialogue()">生成对话</button>
+    
+    <div id="dialogue-result" class="result-panel" style="display: none;">
+        <h4>💬 智能对话结果</h4>
+        <div id="dialogue-content"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🔧 对话优化工具</h3>
+    <p>优化现有对话的自然度和表现力</p>
+    
+    <div class="form-group">
+        <label>原始对话内容：</label>
+        <textarea id="original-dialogue" class="form-control" rows="4" placeholder="粘贴需要优化的对话内容"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>优化目标：</label>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="optimize-naturalness" checked> 自然度优化</label>
+            <label><input type="checkbox" id="optimize-personality" checked> 个性化优化</label>
+            <label><input type="checkbox" id="optimize-emotion" checked> 情感表达优化</label>
+            <label><input type="checkbox" id="optimize-rhythm"> 节奏韵律优化</label>
+            <label><input type="checkbox" id="optimize-subtext"> 言外之意优化</label>
+        </div>
+    </div>
+    
+    <button class="btn" onclick="optimizeDialogue()">优化对话</button>
+    
+    <div id="dialogue-optimize-result" class="result-panel" style="display: none;">
+        <h4>⚡ 对话优化结果</h4>
+        <div id="dialogue-optimize-content"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📚 爆款小说学习分析</h3>
+    <p>分析成功小说的写作模式并应用到创作中</p>
+    
+    <div class="form-group">
+        <label>小说类型：</label>
+        <input type="text" id="learning-genre" class="form-control" placeholder="如：悬疑推理、言情现代等">
+    </div>
+    
+    <div class="form-group">
+        <label>爆款小说样本（每行一个）：</label>
+        <textarea id="sample-texts" class="form-control" rows="5" placeholder="请输入爆款小说的名称或片段，每行一个&#10;如：《东野圭吾：白夜行》- 悬念设置精妙，人物关系复杂&#10;《三体》- 科幻设定宏大，逻辑严密"></textarea>
+    </div>
+    
+    <button class="btn" onclick="analyzeBestsellers()">分析学习</button>
+    
+    <div id="learning-result" class="result-panel" style="display: none;">
+        <h4>📚 分析学习结果</h4>
+        <div id="learning-content"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📊 内容质量深度分析</h3>
+    <p>全面分析内容质量并提供改进建议</p>
+    
+    <div class="form-group">
+        <label>待分析内容：</label>
+        <textarea id="quality-content" class="form-control" rows="6" placeholder="粘贴需要分析的章节内容或文本"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>小说类型：</label>
+        <input type="text" id="quality-genre" class="form-control" placeholder="如：悬疑推理、言情现代等">
+    </div>
+    
+    <button class="btn" onclick="analyzeQuality()">质量分析</button>
+    
+    <div id="quality-result" class="result-panel" style="display: none;">
+        <h4>📊 质量分析报告</h4>
+        <div id="quality-content-result"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🏆 AI小说8大问题解决方案</h3>
+    <p>针对AI小说创作的8大核心问题提供解决方案</p>
+    
+    <div class="form-group">
+        <label>待优化内容：</label>
+        <textarea id="problems-content" class="form-control" rows="6" placeholder="粘贴需要优化的章节内容"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>要解决的问题：</label>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="problem-1" checked> 1. 逻辑连贯性薄弱</label>
+            <label><input type="checkbox" id="problem-2" checked> 2. 情感共鸣缺失</label>
+            <label><input type="checkbox" id="problem-3" checked> 3. 原创性不足</label>
+            <label><input type="checkbox" id="problem-4" checked> 4. 人物塑造扁平化</label>
+            <label><input type="checkbox" id="problem-5" checked> 5. 语言AI味显僵化</label>
+            <label><input type="checkbox" id="problem-6" checked> 6. 叙事节奏失控</label>
+            <label><input type="checkbox" id="problem-7" checked> 7. 主题思想浅薄</label>
+            <label><input type="checkbox" id="problem-8" checked> 8. 文化适配性差</label>
+        </div>
+    </div>
+    
+    <button class="btn" onclick="solveProblems()">解决问题</button>
+    
+    <div id="problems-result" class="result-panel" style="display: none;">
+        <h4>🏆 问题解决结果</h4>
+        <div id="problems-content-result"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentRecommendations = null;
+
+    // 获取智能推荐
+    async function getRecommendations() {
+        const genre = document.getElementById('genre-select').value;
+        const experience = document.getElementById('experience-select').value;
+        const quality = document.getElementById('quality-select').value;
+        const specialNeeds = document.getElementById('special-needs').value;
+        
+        const user_input = {
+            genre: genre,
+            experience_indicators: {
+                ai_writing_experience: experience !== 'beginner',
+                professional_writing: experience === 'expert'
+            },
+            description: quality === 'standard' ? '标准创作' : 
+                        quality === 'enhanced' ? '高质量优化创作' : '精品级专业创作',
+            technical_comfort: experience === 'beginner' ? 'low' : 
+                              experience === 'intermediate' ? 'medium' : 'high'
+        };
+        
+        if (specialNeeds) {
+            user_input.description += ` ${specialNeeds}`;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 分析中...';
+        
+        try {
+            const result = await apiCall('/api/intelligent_recommend', 'POST', {user_input: user_input});
+            
+            if (result.success) {
+                currentRecommendations = result.data;
+                displayRecommendations(result.data);
+            } else {
+                showAlert('推荐生成失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '获取智能推荐';
+        }
+    }
+    
+    // 显示推荐结果
+    function displayRecommendations(recommendations) {
+        const resultDiv = document.getElementById('recommendations-result');
+        const contentDiv = document.getElementById('recommendations-content');
+        
+        let html = `
+            <div class="recommendation-card">
+                <h5>📋 推荐工作流: ${recommendations.workflow.name}</h5>
+                <p><strong>描述:</strong> ${recommendations.workflow.description}</p>
+                <p><strong>难度等级:</strong> ${recommendations.workflow.difficulty}/3</p>
+                <p><strong>预计时间:</strong> ${recommendations.estimated_time}</p>
+                
+                <h6>🎨 推荐功能:</h6>
+                <ul>
+        `;
+        
+        recommendations.recommended_features.forEach(feature => {
+            const emoji = feature.priority === 'essential' ? '🔥' : 
+                         feature.priority === 'recommended' ? '⭐' : '💡';
+            html += `<li>${emoji} <strong>${feature.name}:</strong> ${feature.description}</li>`;
+        });
+        
+        html += `</ul><h6>💭 推荐理由:</h6><ul>`;
+        
+        recommendations.reasoning.forEach(reason => {
+            html += `<li>${reason}</li>`;
+        });
+        
+        html += `</ul><h6>📋 执行步骤:</h6><ol>`;
+        
+        recommendations.quick_start_steps.forEach(step => {
+            html += `<li><strong>${step.title}</strong> (${step.estimated_time})</li>`;
+        });
+        
+        html += `</ol></div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+        document.getElementById('execute-btn').style.display = 'inline-block';
+    }
+    
+    // 执行工作流
+    async function executeWorkflow() {
+        if (!currentRecommendations) {
+            showAlert('请先获取推荐方案', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 执行中...';
+        
+        try {
+            const result = await apiCall('/api/workflow_execute', 'POST', {
+                workflow: currentRecommendations.workflow,
+                config: currentRecommendations.custom_config
+            });
+            
+            if (result.success) {
+                showAlert(`工作流执行完成！完成步骤: ${result.data.steps_completed}/${result.data.total_steps}`, 'success');
+            } else {
+                showAlert('工作流执行失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '执行推荐工作流';
+        }
+    }
+    
+    // Self-RAG生成
+    async function generateSelfRAG() {
+        const prompt = document.getElementById('self-rag-prompt').value;
+        const chapterNum = document.getElementById('self-rag-chapter').value;
+        
+        if (!prompt) {
+            showAlert('请输入生成内容描述', 'error');
+            return;
+        }
+        
+        const context = {
+            chapter_number: chapterNum ? parseInt(chapterNum) : null,
+            genre: 'general'
+        };
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 生成中...';
+        
+        try {
+            const result = await apiCall('/api/self_rag/generate', 'POST', {
+                prompt: prompt,
+                context: context
+            });
+            
+            if (result.success) {
+                displaySelfRAGResult(result.data);
+            } else {
+                showAlert('Self-RAG生成失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Self-RAG 生成';
+        }
+    }
+    
+    // 显示Self-RAG结果
+    function displaySelfRAGResult(data) {
+        const resultDiv = document.getElementById('self-rag-result');
+        const contentDiv = document.getElementById('self-rag-content');
+        
+        let html = `
+            <div class="result-card">
+                <p><strong>质量评分:</strong> ${data.quality_score ? data.quality_score.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>改进应用:</strong> ${data.improvement_applied ? '是' : '否'}</p>
+                
+                <h6>📝 生成内容:</h6>
+                <div class="content-text">${data.final_content ? data.final_content.replace(/\n/g, '<br>') : 'N/A'}</div>
+            </div>
+        `;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 多模态生成
+    async function generateMultimodal() {
+        const title = document.getElementById('multimodal-title').value;
+        const includeImages = document.getElementById('include-images').checked;
+        const includeAudio = document.getElementById('include-audio').checked;
+        const includeViz = document.getElementById('include-visualization').checked;
+        const style = document.getElementById('multimodal-style').value;
+        
+        if (!title) {
+            showAlert('请输入章节标题', 'error');
+            return;
+        }
+        
+        const chapter_plan = {
+            chapter_title: title,
+            main_plot_points: ['情节发展'],
+            character_development: ['角色发展']
+        };
+        
+        const config = {
+            include_images: includeImages,
+            include_audio: includeAudio,
+            include_visualization: includeViz,
+            style: style,
+            target_length: 3000
+        };
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 生成中...';
+        
+        try {
+            const result = await apiCall('/api/multimodal/generate', 'POST', {
+                chapter_plan: chapter_plan,
+                config: config
+            });
+            
+            if (result.success) {
+                displayMultimodalResult(result.data);
+            } else {
+                showAlert('多模态生成失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '多模态生成';
+        }
+    }
+    
+    // 显示多模态结果
+    function displayMultimodalResult(data) {
+        const resultDiv = document.getElementById('multimodal-result');
+        const contentDiv = document.getElementById('multimodal-content');
+        
+        let html = `
+            <div class="result-card">
+                <p><strong>字数:</strong> ${data.word_count || 0}</p>
+                <p><strong>标题:</strong> ${data.title || 'N/A'}</p>
+                
+                <h6>📝 文本内容:</h6>
+                <div class="content-text">${data.text_content ? data.text_content.replace(/\n/g, '<br>') : 'N/A'}</div>
+        `;
+        
+        if (data.multimodal_elements) {
+            html += `<h6>🎨 多模态元素:</h6>`;
+            
+            if (data.multimodal_elements.images && data.multimodal_elements.images.length > 0) {
+                html += `<p><strong>📷 图像描述:</strong></p><ul>`;
+                data.multimodal_elements.images.forEach(img => {
+                    html += `<li>${img.description || img}</li>`;
+                });
+                html += `</ul>`;
+            }
+            
+            if (data.multimodal_elements.audio) {
+                html += `<p><strong>🎵 音频元素:</strong> 已生成</p>`;
+            }
+            
+            if (data.multimodal_elements.visualizations && data.multimodal_elements.visualizations.length > 0) {
+                html += `<p><strong>🎬 场景可视化:</strong> ${data.multimodal_elements.visualizations.length}个场景</p>`;
+            }
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 生成对话
+    async function generateDialogue() {
+        const characterName = document.getElementById('character-name').value;
+        const targetCharacter = document.getElementById('target-character').value;
+        const sceneDescription = document.getElementById('dialogue-scene').value;
+        const location = document.getElementById('dialogue-location').value;
+        const mood = document.getElementById('dialogue-mood').value;
+        
+        if (!characterName) {
+            showAlert('请输入说话角色名称', 'error');
+            return;
+        }
+        
+        const context = {
+            scene_description: sceneDescription,
+            location: location,
+            time: '',
+            mood: mood
+        };
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 生成中...';
+        
+        try {
+            const result = await apiCall('/api/dialogue/generate', 'POST', {
+                character_name: characterName,
+                context: context,
+                target_character: targetCharacter || null
+            });
+            
+            if (result.success) {
+                displayDialogueResult(result.data, characterName);
+            } else {
+                showAlert('对话生成失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '生成对话';
+        }
+    }
+    
+    // 显示对话结果
+    function displayDialogueResult(data, characterName) {
+        const resultDiv = document.getElementById('dialogue-result');
+        const contentDiv = document.getElementById('dialogue-content');
+        
+        let html = `
+            <div class="result-card">
+                <h6>💬 生成的对话:</h6>
+                <div class="dialogue-text"><strong>${characterName}:</strong> "${data.dialogue || 'N/A'}"</div>
+        `;
+        
+        if (data.quality_metrics) {
+            html += `
+                <h6>📊 对话质量:</h6>
+                <p><strong>总体评分:</strong> ${data.quality_metrics.overall_score ? data.quality_metrics.overall_score.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>角色一致性:</strong> ${data.quality_metrics.character_consistency ? data.quality_metrics.character_consistency.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>语言自然度:</strong> ${data.quality_metrics.language_naturalness ? data.quality_metrics.language_naturalness.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>情感表达:</strong> ${data.quality_metrics.emotional_expression ? data.quality_metrics.emotional_expression.toFixed(1) : 'N/A'}/10</p>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 优化对话
+    async function optimizeDialogue() {
+        const originalDialogue = document.getElementById('original-dialogue').value;
+        
+        if (!originalDialogue) {
+            showAlert('请输入原始对话内容', 'error');
+            return;
+        }
+        
+        // 获取优化目标
+        const goals = [];
+        if (document.getElementById('optimize-naturalness').checked) goals.push('naturalness');
+        if (document.getElementById('optimize-personality').checked) goals.push('personality');
+        if (document.getElementById('optimize-emotion').checked) goals.push('emotion');
+        if (document.getElementById('optimize-rhythm').checked) goals.push('rhythm');
+        if (document.getElementById('optimize-subtext').checked) goals.push('subtext');
+        
+        const dialogue_data = {
+            dialogue: originalDialogue,
+            optimization_goals: goals,
+            character_profile: {},
+            emotional_context: {},
+            scene_context: {}
+        };
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 优化中...';
+        
+        try {
+            const result = await apiCall('/api/dialogue/optimize', 'POST', {
+                dialogue_data: dialogue_data
+            });
+            
+            if (result.success) {
+                displayDialogueOptimizeResult(result.data);
+            } else {
+                showAlert('对话优化失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '优化对话';
+        }
+    }
+    
+    // 显示对话优化结果
+    function displayDialogueOptimizeResult(data) {
+        const resultDiv = document.getElementById('dialogue-optimize-result');
+        const contentDiv = document.getElementById('dialogue-optimize-content');
+        
+        let html = `
+            <div class="result-card">
+                <h6>📝 原始对话:</h6>
+                <div class="dialogue-text">${data.original_dialogue ? data.original_dialogue.replace(/\n/g, '<br>') : 'N/A'}</div>
+                
+                <h6>✨ 优化后对话:</h6>
+                <div class="dialogue-text optimized">${data.optimized_dialogue ? data.optimized_dialogue.replace(/\n/g, '<br>') : 'N/A'}</div>
+        `;
+        
+        if (data.applied_optimizations && data.applied_optimizations.length > 0) {
+            html += `
+                <h6>🎨 应用的优化:</h6>
+                <ul>
+            `;
+            data.applied_optimizations.forEach(optimization => {
+                html += `<li>${optimization}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.quality_assessment) {
+            html += `
+                <h6>📊 优化后质量:</h6>
+                <p><strong>总体评分:</strong> ${data.quality_assessment.overall_score ? data.quality_assessment.overall_score.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>改进幅度:</strong> +${data.improvement_score ? data.improvement_score.toFixed(1) : 'N/A'}</p>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 分析爆款小说
+    async function analyzeBestsellers() {
+        const genre = document.getElementById('learning-genre').value;
+        const sampleTexts = document.getElementById('sample-texts').value;
+        
+        if (!genre) {
+            showAlert('请输入小说类型', 'error');
+            return;
+        }
+        
+        if (!sampleTexts) {
+            showAlert('请输入爆款小说样本', 'error');
+            return;
+        }
+        
+        const samples = sampleTexts.split('\n').filter(line => line.trim());
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 分析中...';
+        
+        try {
+            const result = await apiCall('/api/learning/analyze', 'POST', {
+                genre: genre,
+                bestseller_samples: samples
+            });
+            
+            if (result.success) {
+                displayBestsellerAnalysisResult(result.data);
+            } else {
+                showAlert('爆款分析失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '分析学习';
+        }
+    }
+    
+    // 显示爆款分析结果
+    function displayBestsellerAnalysisResult(data) {
+        const resultDiv = document.getElementById('learning-result');
+        const contentDiv = document.getElementById('learning-content');
+        
+        let html = `
+            <div class="result-card">
+                <h6>🎯 写作建议:</h6>
+        `;
+        
+        if (data.writing_suggestions && data.writing_suggestions.length > 0) {
+            html += `<ul>`;
+            data.writing_suggestions.forEach(suggestion => {
+                html += `<li>${suggestion}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.learned_patterns && data.learned_patterns.length > 0) {
+            html += `
+                <h6>📚 学习到的成功模式:</h6>
+                <ul>
+            `;
+            data.learned_patterns.forEach(pattern => {
+                html += `<li>${pattern}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.genre_characteristics) {
+            html += `
+                <h6>🏷️ 类型特色分析:</h6>
+                <div class="content-text">${data.genre_characteristics.replace(/\n/g, '<br>')}</div>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 质量分析
+    async function analyzeQuality() {
+        const content = document.getElementById('quality-content').value;
+        const genre = document.getElementById('quality-genre').value;
+        
+        if (!content) {
+            showAlert('请输入待分析内容', 'error');
+            return;
+        }
+        
+        if (!genre) {
+            showAlert('请输入小说类型', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 分析中...';
+        
+        try {
+            const result = await apiCall('/api/quality/analyze', 'POST', {
+                content: content,
+                genre: genre
+            });
+            
+            if (result.success) {
+                displayQualityAnalysisResult(result.data);
+            } else {
+                showAlert('质量分析失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '质量分析';
+        }
+    }
+    
+    // 显示质量分析结果
+    function displayQualityAnalysisResult(data) {
+        const resultDiv = document.getElementById('quality-result');
+        const contentDiv = document.getElementById('quality-content-result');
+        
+        let html = `
+            <div class="result-card">
+                <h6>📊 总体评分: ${data.overall_score ? data.overall_score.toFixed(1) : 'N/A'}/10</h6>
+        `;
+        
+        if (data.detailed_scores) {
+            html += `
+                <h6>📈 详细评分:</h6>
+                <ul>
+                    <li><strong>逻辑性:</strong> ${data.detailed_scores.logic ? data.detailed_scores.logic.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>情感表达:</strong> ${data.detailed_scores.emotion ? data.detailed_scores.emotion.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>原创性:</strong> ${data.detailed_scores.originality ? data.detailed_scores.originality.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>人物塑造:</strong> ${data.detailed_scores.character ? data.detailed_scores.character.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>语言质量:</strong> ${data.detailed_scores.language ? data.detailed_scores.language.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>节奏控制:</strong> ${data.detailed_scores.pacing ? data.detailed_scores.pacing.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>主题深度:</strong> ${data.detailed_scores.theme ? data.detailed_scores.theme.toFixed(1) : 'N/A'}/10</li>
+                    <li><strong>文化适配:</strong> ${data.detailed_scores.cultural ? data.detailed_scores.cultural.toFixed(1) : 'N/A'}/10</li>
+                </ul>
+            `;
+        }
+        
+        if (data.improvement_suggestions && data.improvement_suggestions.length > 0) {
+            html += `
+                <h6>💡 改进建议:</h6>
+                <ul>
+            `;
+            data.improvement_suggestions.forEach(suggestion => {
+                html += `<li>${suggestion}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.strengths && data.strengths.length > 0) {
+            html += `
+                <h6>✅ 优势点:</h6>
+                <ul>
+            `;
+            data.strengths.forEach(strength => {
+                html += `<li>${strength}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.weaknesses && data.weaknesses.length > 0) {
+            html += `
+                <h6>⚠️ 待改进点:</h6>
+                <ul>
+            `;
+            data.weaknesses.forEach(weakness => {
+                html += `<li>${weakness}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 解决8大问题
+    async function solveProblems() {
+        const content = document.getElementById('problems-content').value;
+        
+        if (!content) {
+            showAlert('请输入待优化内容', 'error');
+            return;
+        }
+        
+        // 获取选中的问题
+        const problems = [];
+        for (let i = 1; i <= 8; i++) {
+            if (document.getElementById(`problem-${i}`).checked) {
+                problems.push(i);
+            }
+        }
+        
+        if (problems.length === 0) {
+            showAlert('请至少选择一个要解决的问题', 'error');
+            return;
+        }
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> 解决中...';
+        
+        try {
+            const result = await apiCall('/api/advanced/solve_problems', 'POST', {
+                content: content,
+                selected_problems: problems
+            });
+            
+            if (result.success) {
+                displayProblemSolutionResult(result.data);
+            } else {
+                showAlert('问题解决失败：' + result.message, 'error');
+            }
+        } catch (error) {
+            showAlert('请求失败：' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '解决问题';
+        }
+    }
+    
+    // 显示问题解决结果
+    function displayProblemSolutionResult(data) {
+        const resultDiv = document.getElementById('problems-result');
+        const contentDiv = document.getElementById('problems-content-result');
+        
+        let html = `
+            <div class="result-card">
+                <h6>📝 原始内容:</h6>
+                <div class="content-text">${data.original_content ? data.original_content.replace(/\n/g, '<br>') : 'N/A'}</div>
+                
+                <h6>✨ 优化后内容:</h6>
+                <div class="content-text optimized">${data.optimized_content ? data.optimized_content.replace(/\n/g, '<br>') : 'N/A'}</div>
+        `;
+        
+        if (data.solved_problems && data.solved_problems.length > 0) {
+            html += `
+                <h6>🎯 已解决的问题:</h6>
+                <ul>
+            `;
+            const problemNames = [
+                '', '逻辑连贯性薄弱', '情感共鸣缺失', '原创性不足', '人物塑造扁平化',
+                '语言AI味显僵化', '叙事节奏失控', '主题思想浅薄', '文化适配性差'
+            ];
+            data.solved_problems.forEach(problemNum => {
+                html += `<li>${problemNum}. ${problemNames[problemNum] || '未知问题'}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.optimization_details && data.optimization_details.length > 0) {
+            html += `
+                <h6>🔧 优化详情:</h6>
+                <ul>
+            `;
+            data.optimization_details.forEach(detail => {
+                html += `<li>${detail}</li>`;
+            });
+            html += `</ul>`;
+        }
+        
+        if (data.quality_improvement) {
+            html += `
+                <h6>📊 质量提升:</h6>
+                <p><strong>总体提升:</strong> +${data.quality_improvement.overall ? data.quality_improvement.overall.toFixed(1) : 'N/A'}</p>
+                <p><strong>优化前评分:</strong> ${data.quality_improvement.before ? data.quality_improvement.before.toFixed(1) : 'N/A'}/10</p>
+                <p><strong>优化后评分:</strong> ${data.quality_improvement.after ? data.quality_improvement.after.toFixed(1) : 'N/A'}/10</p>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+    
+    // 通用API调用函数
+    async function apiCall(url, method = 'GET', data = null) {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(url, options);
+        return await response.json();
+    }
+    
+    // 显示提示信息
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        
+        // 将提示添加到页面顶部
+        document.body.insertBefore(alertDiv, document.body.firstChild);
+        
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 3000);
+    }
+</script>
+
+<style>
+    .result-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .recommendation-card {
+        background: #e8f5e8;
+        border: 1px solid #c3e6c3;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .content-text {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        padding: 10px;
+        margin: 5px 0;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .dialogue-text {
+        background: #f0f8ff;
+        border-left: 4px solid #007bff;
+        padding: 10px;
+        margin: 10px 0;
+        font-style: italic;
+    }
+    
+    .optimized {
+        background: #f0fff0;
+        border-left: 4px solid #28a745;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        margin-right: 8px;
+    }
+    
+    .loading {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 2px solid #007bff;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .alert {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 300px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+    
+    .alert-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+    
+    .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+</style>
+{% endblock %}
