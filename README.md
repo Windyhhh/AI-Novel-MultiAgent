@@ -110,6 +110,41 @@ AI-Novel-MultiAgent/
 
 ---
 
+## 技术实现细节
+
+### 架构概览
+
+项目采用模块化设计，核心目录包括：**agents, docs, examples, integrations, qa, scheduler, utils, web**。
+
+### 关键函数
+
+- `check_environment`, `run_web`, `run_cli`, `create_new_novel`, `continue_existing_novel`
+
+### 技术栈与依赖
+
+**核心框架/库**：PyTorch
+
+**主要 import**：
+```python
+import os
+import sys
+import argparse
+from dotenv import load_dotenv
+from web.app import run_app
+from agents import OutlineAgent, ChapterPlanningAgent, ContentGenerationAgent
+from agents.human_like_generator import HumanLikeGenerator
+from scheduler import NovelScheduler
+from qa import NovelQASystem
+from integrations import FeedbackProcessor
+```
+
+### 实现要点
+
+- 通过 `check_environment` 等函数实现核心流程编排
+- 基于 PyTorch 构建，保证技术栈成熟稳定
+- 代码结构清晰，模块间低耦合，便于扩展和维护
+
+---
 ## License
 
 MIT — free to use, modify and distribute.
