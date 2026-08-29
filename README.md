@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📚 AI-Novel-MultiAgent
+# AI 小说多智能体写作系统 | AI-Novel-MultiAgent
 
 ### The multi-agent AI novel writing system.
 
